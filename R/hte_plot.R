@@ -18,8 +18,8 @@ estimate = x
 bind_rows(estimate$out_algs$qoi$GATE) %>%
   mutate(
     estimate = gate,
-    lower = gate - 1.96*sd,
-    upper = gate + 1.96*sd,
+    lower = gate - qnorm(0.975)*sd,
+    upper = gate + qnorm(0.975)*sd,
     algorithm = gsub("_", " ", alg)) -> data
 
 # plot GATE estimates
