@@ -23,6 +23,7 @@ Imports:
     scales,
     tidyr,
     stats,
+    JuliaCall,
     purrr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
