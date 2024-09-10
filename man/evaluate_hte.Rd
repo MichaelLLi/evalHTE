@@ -4,60 +4,12 @@
 \alias{evaluate_hte}
 \title{Evaluate Heterogeneous Treatment Effects}
 \usage{
-evaluate_hte(
-  treatment,
-  form,
-  data,
-  algorithms,
-  budget,
-  n_folds = 5,
-  split_ratio = 0,
-  ngates = 5,
-  c_threshold = 0,
-  preProcess = NULL,
-  weights = NULL,
-  trControl = caret::trainControl(method = "none"),
-  tuneGrid = NULL,
-  tuneLength = ifelse(trControl$method == "none", 1, 3),
-  user_model = NULL,
-  SL_library = NULL,
-  ...
-)
+evaluate_hte(fit, ...)
 }
 \arguments{
-\item{treatment}{Treatment variable}
+\item{fit}{Fitted model. Usually an output from \code{estimate_hte}.}
 
-\item{form}{a formula object that takes the form \code{y ~ T + x1 + x2 + ...}.}
-
-\item{data}{A data frame that contains the outcome \code{y} and the treatment \code{T}.}
-
-\item{algorithms}{List of machine learning algorithms to be used.}
-
-\item{budget}{The maximum percentage of population that can be treated under the budget constraint.}
-
-\item{n_folds}{Number of cross-validation folds. Default is 5.}
-
-\item{split_ratio}{Split ratio between train and test set under sample splitting. Default is 0.}
-
-\item{ngates}{The number of groups to separate the data into. The groups are determined by tau. Default is 5.}
-
-\item{c_threshold}{The threshold for determining the treatment assignment under the ITR. Default is 0, which assumes all units with a score greater than 0 will receive treatment.}
-
-\item{preProcess}{caret parameter}
-
-\item{weights}{caret parameter}
-
-\item{trControl}{caret parameter}
-
-\item{tuneGrid}{caret parameter}
-
-\item{tuneLength}{caret parameter}
-
-\item{user_model}{A user-defined function to estimate heterogeneous treatment effects. The function should take the data as input and return a model to estimate the HTE.}
-
-\item{SL_library}{A list of machine learning algorithms to be used in the super learner.}
-
-\item{...}{Additional arguments passed to \code{caret::train}.}
+\item{...}{Additional arguments passed to the function.}
 }
 \value{
 An object of \code{hte} class

@@ -25,7 +25,7 @@
 #' @importFrom rlang !! sym
 #' @export
 #' @return An object of \code{hte} class
-evaluate_hte <- function(
+estimate_hte <- function(
     treatment,
     form,
     data,
@@ -64,8 +64,28 @@ evaluate_hte <- function(
     user_model = user_model,
     SL_library = SL_library,
     ...)
+  
+  # return the fit
+  return(fit)
+}
+
+
+#' Evaluate Heterogeneous Treatment Effects
+#' @param fit Fitted model. Usually an output from \code{estimate_hte}.
+#' @param ... Additional arguments passed to the function.
+#' @import dplyr
+#' @importFrom rlang !! sym
+#' @export
+#' @return An object of \code{hte} class
+evaluate_hte <- function(
+    fit,
+    ...
+) {
 
   # parameters
+  user_model <- fit$user_model
+
+  # initialize output lists
   out_algs <- list()
   out_user  <- list()
 
