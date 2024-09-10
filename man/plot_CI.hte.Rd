@@ -4,12 +4,18 @@
 \alias{plot_CI.hte}
 \title{Plot the uniform confidence interval}
 \usage{
-plot_CI.hte(x, ...)
+\method{plot_CI}{hte}(x, ...)
 }
 \arguments{
 \item{x}{An object of \code{evaluate_hte()} class. This is typically an output of \code{evaluate_hte()} function.}
 
 \item{...}{Further arguments passed to the function.}
+
+\item{min_uniform_score}{A numeric value. This is the score of the optimal uniform band.}
+
+\item{min_pointwise_score}{A numeric value. This is the score of the optimal pointwise band.}
+
+\item{min_alpha}{A numeric value. This is the score of the optimal alpha.}
 }
 \value{
 A plot of ggplot2 object.

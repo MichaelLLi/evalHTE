@@ -29,8 +29,12 @@ return(out)
 
 }
 
+#' @export
+plot_CI <- function(x, ...) {
+  UseMethod("plot_CI")
+}
 
-#' Plot the uniform confidence interval
+#' Plot the uniform confidence interval 
 #' @import ggplot2
 #' @import ggthemes
 #' @importFrom stats sd
@@ -38,10 +42,14 @@ return(out)
 #' @importFrom scales percent
 #' @importFrom tidyr pivot_longer
 #' @param x An object of \code{evaluate_hte()} class. This is typically an output of \code{evaluate_hte()} function.
+#' @param min_uniform_score A numeric value. This is the score of the optimal uniform band.
+#' @param min_pointwise_score A numeric value. This is the score of the optimal pointwise band.
+#' @param min_alpha A numeric value. This is the score of the optimal alpha.
 #' @param ... Further arguments passed to the function.
 #' @return A plot of ggplot2 object.
 #' @export
-plot_CI.hte <- function(x, ...){
+plot_CI.hte <- function(
+  x, ...){
 
 # parameters
 estimate = x
@@ -54,6 +62,21 @@ data_user = tibble()
 # estimate HTE from ML algorithms
 # -----------------------------------------
 
+# run optimization in Julia
+results <- run_optimization()
+  if (is.null(results)) {
+    warning("Julia optimization failed. Using default values.")
+    min_uniform_score <- 1.92
+    min_pointwise_score <- 1.2
+    min_alpha <- 0.07
+  } else {
+    alphas <- results$alphas
+    min_uniform_score <- results$new_law
+    min_pointwise_score <- results$normal_law
+    min_alpha <- results$min_alpha
+  }
+
+# get the estimate from ML algorithms
 if(length(estimate_algs) != 0){
 
   # parameters
@@ -72,12 +95,6 @@ if(length(estimate_algs) != 0){
     data = estimate_algs$df$data
     algorithms = estimate_algs$df$algorithms
 
-    # graphLabels <- data.frame(
-    #   type = algorithms,
-    #   Pval = map(
-    #     fit$AUPEC, ~.x[c('aupec', 'sd')]) %>%
-    #     bind_rows() %>%
-    #     mutate(Pval = paste0("AUPEC = ", round(aupec, 2), " (s.e. = ", round(sd, 2), ")")) %>% pull(Pval))
 
     Tcv = estimate_algs$estimates[['Tcv']] %>% as.numeric()
     Ycv = estimate_algs$estimates[['Ycv']] %>% as.numeric()
@@ -85,17 +102,17 @@ if(length(estimate_algs) != 0){
     map(fit$URATE, ~.x) %>%
       bind_rows() %>%
       mutate(
-        RATEmin = rate - 1.2*sd - 0.68*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-        RATEpoint = rate - 1.67*sd, 
+        RATEmin = rate - min_uniform_score*sd - min_alpha*sd[length(sd)]*length(sd)/seq(1, length(sd)),
+        RATEpoint = rate - min_pointwise_score*sd, 
         fraction = rep(seq(1,length(Ycv))/length(Ycv), length(algorithms)),
         type = lapply(algorithms, function(x)rep(x,length(Ycv))) %>% unlist) %>%
     rename(
     `GATE estimate` = rate, 
-    `Minimum-area lower band` = RATEmin,
+    `Uniform lower band` = RATEmin,
     `Pointwise lower band` =RATEpoint) %>%
     tidyr::pivot_longer(
       ., cols = c(
-        "GATE estimate", "Minimum-area lower band", "Pointwise lower band"),
+        "GATE estimate", "Uniform lower band", "Pointwise lower band"),
       names_to = "Type",
       values_to = "value"
     ) -> data_algs
@@ -114,34 +131,27 @@ if(length(estimate_user) != 0){
   Tcv = estimate_user$estimates[['Tcv']] %>% as.numeric()
   Ycv = estimate_user$estimates[['Ycv']] %>% as.numeric()
 
-  # graphLabels <- data.frame(
-  #   type = "user-defined HTE",
-  #   Pval = map(
-  #     fit$AUPEC, ~.x[c('aupec', 'sd')]) %>%
-  #     bind_rows() %>%
-  #     mutate(Pval = paste0("AUPEC = ", round(aupec, 2), " (s.e. = ", round(sd, 2), ")")) %>% pull(Pval))
-
   fit$AUPEC %>%
     bind_rows() %>%
     mutate(
-      RATEmin = rate - 1.2*sd - 0.68*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-      RATEpoint = rate - 1.67*sd, 
+      RATEmin = rate - min_uniform_score*sd - min_alpha*sd[length(sd)]*length(sd)/seq(1, length(sd)),
+      RATEpoint = rate - min_pointwise_score*sd, 
       fraction = rep(seq(1,length(Ycv))/length(Ycv),1),
       type = lapply("user-defined", function(x)rep(x,length(Ycv))) %>% unlist) %>%
     rename(
     `GATE estimate` = rate, 
-    `minimum-area lower band` = RATEmin,
-    `pointwise lower band` =RATEpoint) %>%
+    `Uniform lower band` = RATEmin,
+    `Pointwise lower band` =RATEpoint) %>%
     tidyr::pivot_longer(
       ., cols = c(
-        "GATE estimate", "Minimum-area lower band", "Pointwise lower band"),
+        "GATE estimate", "Uniform lower band", "Pointwise lower band"),
       names_to = "Type",
       values_to = "value"
     ) -> data_user
 }
 
 # dataframe for plotting
-data <- bind_rows(data_algs, data_user) 
+data <- bind_rows(data_algs, data_user)
 
 # plot   
 ggplot(data, aes(x=fraction,y=value)) +
@@ -152,7 +162,9 @@ ggplot(data, aes(x=fraction,y=value)) +
   facet_wrap(~type)+
   scale_x_continuous(labels=scales::percent)+
   scale_y_continuous(
-    limits = c(quantile(data["Minimum-area lower band",], 0.01, na.rm = TRUE), quantile(data["Minimum-area lower band",],  0.99, na.rm = TRUE)))+
+    limits = c(
+      quantile(data %>% filter(Type == "Uniform lower band") %>% pull(value), 0.01, na.rm = TRUE), 
+      quantile(data %>% filter(Type == "GATE estimate") %>% pull(value),  0.99, na.rm = TRUE)))+
   theme_few()+
   geom_hline(yintercept = 0, color = "black", size = 0.5, linetype = "dotted") +  
   theme(
