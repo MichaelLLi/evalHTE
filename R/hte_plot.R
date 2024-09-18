@@ -41,15 +41,16 @@ plot_CI <- function(x, ...) {
 #' @importFrom rlang .data
 #' @importFrom scales percent
 #' @importFrom tidyr pivot_longer
+#' @importFrom purrr map
 #' @param x An object of \code{evaluate_hte()} class. This is typically an output of \code{evaluate_hte()} function.
-#' @param min_uniform_score A numeric value. This is the score of the optimal uniform band.
-#' @param min_pointwise_score A numeric value. This is the score of the optimal pointwise band.
-#' @param min_alpha A numeric value. This is the score of the optimal alpha.
+#' @param alpha Significance level. Default is 0.05.
 #' @param ... Further arguments passed to the function.
 #' @return A plot of ggplot2 object.
 #' @export
 plot_CI.hte <- function(
-  x, ...){
+  x, 
+  alpha = 0.05,
+  ...){
 
 # parameters
 estimate = x
@@ -63,18 +64,21 @@ data_user = tibble()
 # -----------------------------------------
 
 # run optimization in Julia
-results <- run_optimization()
-  if (is.null(results)) {
-    warning("Julia optimization failed. Using default values.")
-    min_uniform_score <- 1.92
-    min_pointwise_score <- 1.2
-    min_alpha <- 0.07
-  } else {
-    alphas <- results$alphas
-    min_uniform_score <- results$new_law
-    min_pointwise_score <- results$normal_law
-    min_alpha <- results$min_alpha
-  }
+# results <- run_optimization()
+results <- test
+
+if (is.null(results)) {
+  warning("Julia optimization failed. Using default values.")
+  min_uniform_beta_0 <- 1.2
+  min_uniform_beta_1 <- 0.68
+  min_pointwise_score <- 1.96
+} else {
+
+  # get the optimal parameters
+  min_uniform_beta_0 <- results$beta_0[results$alphas == alpha]
+  min_uniform_beta_1 <- results$beta_1[results$alphas == alpha]
+  min_pointwise_score <- results$normal_law[results$alphas == alpha]
+}
 
 # get the estimate from ML algorithms
 if(length(estimate_algs) != 0){
@@ -99,13 +103,17 @@ if(length(estimate_algs) != 0){
     Tcv = estimate_algs$estimates[['Tcv']] %>% as.numeric()
     Ycv = estimate_algs$estimates[['Ycv']] %>% as.numeric()
 
-    map(fit$URATE, ~.x) %>%
-      bind_rows() %>%
+    purrr::map(fit$URATE, ~.x) %>%
+      bind_rows() %>% 
       mutate(
-        RATEmin = rate - min_uniform_score*sd - min_alpha*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-        RATEpoint = rate - min_pointwise_score*sd, 
+        RATEmin = rate - min_uniform_beta_1*sd - min_uniform_beta_0*sd[length(sd)]*length(sd)/seq(1, length(sd)),
+        # get the z-score 
+        z_alpha = qnorm(1-alpha),
+        RATEpoint = rate - z_alpha*sd, 
+        # RATEpoint = rate - min_pointwise_score*sd, 
         fraction = rep(seq(1,length(Ycv))/length(Ycv), length(algorithms)),
-        type = lapply(algorithms, function(x)rep(x,length(Ycv))) %>% unlist) %>%
+        type = lapply(algorithms, function(x)rep(x,length(Ycv))) %>% unlist
+  ) %>%
     rename(
     `GATE estimate` = rate, 
     `Uniform lower band` = RATEmin,
@@ -134,9 +142,12 @@ if(length(estimate_user) != 0){
   fit$AUPEC %>%
     bind_rows() %>%
     mutate(
-      RATEmin = rate - min_uniform_score*sd - min_alpha*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-      RATEpoint = rate - min_pointwise_score*sd, 
-      fraction = rep(seq(1,length(Ycv))/length(Ycv),1),
+      RATEmin = rate - min_uniform_beta_1*sd - min_uniform_beta_0*sd[length(sd)]*length(sd)/seq(1, length(sd)),
+      # get the z-score of alpha 
+      z_alpha = qnorm(1-alpha),
+      RATEpoint = rate - z_alpha*sd,
+      # RATEpoint = rate - min_pointwise_score*sd, 
+      fraction = rep(seq(1,length(Ycv))/length(Ycv), 1),
       type = lapply("user-defined", function(x)rep(x,length(Ycv))) %>% unlist) %>%
     rename(
     `GATE estimate` = rate, 
@@ -154,24 +165,21 @@ if(length(estimate_user) != 0){
 data <- bind_rows(data_algs, data_user)
 
 # plot   
-ggplot(data, aes(x=fraction,y=value)) +
-  geom_line(alpha=0.8, aes(color = Type)) +
-  scale_colour_few("Dark")+
-  xlab("Maximum Proportion Treated")+
-  ylab("GATE Estimates")+
-  facet_wrap(~type)+
-  scale_x_continuous(labels=scales::percent)+
-  scale_y_continuous(
-    limits = c(
-      quantile(data %>% filter(Type == "Uniform lower band") %>% pull(value), 0.01, na.rm = TRUE), 
-      quantile(data %>% filter(Type == "GATE estimate") %>% pull(value),  0.99, na.rm = TRUE)))+
-  theme_few()+
-  geom_hline(yintercept = 0, color = "black", size = 0.5, linetype = "dotted") +  
+ggplot(data, aes(x=fraction, y=value)) +
+  geom_line(alpha=0.8, aes(color = Type)) +  
+  scale_colour_few("Dark") +
+  scale_linewidth_continuous(range = c(0.5, 1.5)) + 
+  xlab("Maximum Proportion Treated") +
+  ylab("GATE Estimates") +
+  facet_wrap(~type) +
+  scale_x_continuous(labels=scales::percent) +
+  theme_few() +
+  geom_hline(yintercept = 0, color = "black", linewidth = 0.5, linetype = "dotted") + 
   theme(
     legend.position = "right",
     text = element_text(size=13.5),
-        axis.text = element_text(size=10),
-        strip.text = element_text(size = 13.5)) -> out
-
+    axis.text = element_text(size=10),
+    strip.text = element_text(size = 13.5)
+  ) -> out
   return(out)
 }
