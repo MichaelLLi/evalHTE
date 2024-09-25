@@ -26,11 +26,12 @@ function run_optimization()
             success_trial = sum(sum(bar .- normseq .> 0, dims=2) .== steps)
             return 1000*abs(success_trial / cases - (1 - alpha)) + max(beta[2],0) + max(beta[1]*2/3,0)
         end
-        res = optimize(squaretoptim, [0.766, 1.271], ParticleSwarm(), Optim.Options(f_calls_limit=1000, iterations=200))
+        # note: specify the bounds for the optimization
+        res = optimize(squaretoptim, [0.766, 1.271], ParticleSwarm(), Optim.Options(f_calls_limit=1000, iterations=200), lower = [0.0, 0.0])
         beta_0[i], beta_1[i] = Optim.minimizer(res)
-        # new_law[i] = Optim.minimizer(res)[1]
-        # new_law[i] = beta_0
+        # beta_0[i] = Optim.minimizer(res)[1]
         normal_law[i] = -quantile(Normal(), alpha / 2)
+        # beta_1[i] = beta_0[i] ./ normal_law[i]
         println("Iteration $i completed")
     end
 
@@ -40,7 +41,6 @@ end
 
 # # Run the optimization and time it
 # @time beta_0, beta_1, normal_law, alphas = run_optimization()
-# # new_law, normal_law, alphas = run_optimization()
 
 # # Plot the results
 # p = plot(alphas, [normal_law, beta_0, beta_1, beta_0 ./ normal_law],
