@@ -30,11 +30,11 @@ estimate_hte <- function(
     form,
     data,
     algorithms,
-    budget,
+    budget = 0.5,
     n_folds = 5,
     split_ratio = 0,
     ngates = 5,
-    c_threshold = 0,
+    threshold = 0,
     preProcess = NULL,
     weights = NULL,
     trControl = caret::trainControl(method = "none"),
@@ -42,6 +42,7 @@ estimate_hte <- function(
     tuneLength = ifelse(trControl$method == "none", 1, 3),
     user_model = NULL,
     SL_library = NULL,
+    meta_learner = "slearner",
     ...
 ) {
 
@@ -55,7 +56,7 @@ estimate_hte <- function(
     n_folds = n_folds,
     split_ratio = split_ratio,
     ngates = ngates,
-    c_threshold = c_threshold,
+    threshold = threshold,
     preProcess = preProcess,
     weights = weights,
     trControl = trControl,
@@ -63,6 +64,7 @@ estimate_hte <- function(
     tuneLength = tuneLength,
     user_model = user_model,
     SL_library = SL_library,
+    meta_learner = meta_learner,
     ...)
   
   # return the fit
