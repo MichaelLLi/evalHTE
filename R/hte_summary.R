@@ -66,12 +66,14 @@ if(length(estimate_algs) != 0){
         conf.low.uniform = rate[best_ind] - 1.2*sd[best_ind] - 0.68* sd[length(sd)] * length(sd)/best_ind
       ) %>% 
       filter(rate == best_rate) %>%
-       select(-c(best_ind, est, fraction, best_rate)) %>%
       rename(
         estimate = rate,
         std.deviation = sd,
-        algorithm = alg
-      )
+        algorithm = alg,
+        z.score = statistic
+      ) %>%
+      select(
+        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
   }
 
   # compute quantities under cross-validation -----------------------------------------
@@ -92,8 +94,11 @@ if(length(estimate_algs) != 0){
         estimate = gate,
         std.deviation = sd,
         algorithm = alg,
-        group = group
-      )
+        group = group,
+        z.score = statistic
+      ) %>%
+      select(
+        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
 
     # exceptional reponders not supported for CV
     urate_algs_vec <- NULL
@@ -128,12 +133,10 @@ if(length(estimate_user) != 0){
         std.deviation = sd,
         algorithm = alg,
         group = group,
-        z.score = statistic,
-        ci.lower = lower,
-        ci.upper = upper
+        z.score = statistic
       ) %>%
       select(
-        group, algorithm, estimate, std.deviation, ci.lower, ci.upper, z.score, p.value)
+        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
     
     # exceptional reponders 
     urate_user_vec <- fit$URATE %>%
@@ -154,17 +157,14 @@ if(length(estimate_user) != 0){
         conf.low.uniform = rate[best_ind] - 1.2*sd[best_ind] - 0.68* sd[length(sd)] * length(sd)/best_ind
       ) %>% 
       filter(rate == best_rate) %>%
-      select(-c(best_ind, est, fraction, best_rate)) %>%
       rename(
         estimate = rate,
         std.deviation = sd,
         algorithm = alg,
-        z.score = statistic,
-        ci.lower = lower,
-        ci.upper = upper
+        z.score = statistic
       ) %>%
       select(
-        group, algorithm, estimate, std.deviation, ci.lower, ci.upper, z.score, p.value)
+        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
   
   out <- list(
     GATE = bind_rows(gate_algs_vec, gate_user_vec),
