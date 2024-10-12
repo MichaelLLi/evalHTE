@@ -5,8 +5,6 @@
 #'   A data frame that contains the outcome \code{y} and the treatment \code{T}.
 #' @param algorithms
 #'   List of machine learning algorithms to be used.
-#' @param budget The maximum percentage of population that can be treated under the budget constraint.
-#' @param c_threshold The threshold for determining the treatment assignment under the ITR. Default is 0, which assumes all units with a score greater than 0 will receive treatment.
 #' @param n_folds
 #'   Number of cross-validation folds. Default is 5.
 #' @param split_ratio
@@ -30,11 +28,9 @@ estimate_hte <- function(
     form,
     data,
     algorithms,
-    budget = 0.5,
     n_folds = 5,
     split_ratio = 0,
     ngates = 5,
-    threshold = 0,
     preProcess = NULL,
     weights = NULL,
     trControl = caret::trainControl(method = "none"),
@@ -52,11 +48,10 @@ estimate_hte <- function(
     form = form,
     data = data,
     algorithms = algorithms,
-    budget = budget,
+    budget = 1, # no budget constraint
     n_folds = n_folds,
     split_ratio = split_ratio,
     ngates = ngates,
-    threshold = threshold,
     preProcess = preProcess,
     weights = weights,
     trControl = trControl,

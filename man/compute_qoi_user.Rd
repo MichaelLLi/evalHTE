@@ -4,7 +4,7 @@
 \alias{compute_qoi_user}
 \title{Compute Quantities of Interest (GATE, GATEcv, URATE) with user defined functions}
 \usage{
-compute_qoi_user(user_hte, Tcv, Ycv, data, ngates, budget, ...)
+compute_qoi_user(user_hte, Tcv, Ycv, data, ngates, ...)
 }
 \arguments{
 \item{user_hte}{A user-defined function to estimate heterogeneous treatment effects (HTE). The function should take the data as input and return an unit-level continuous score for treatment assignment. We assume those that have score less than 0 should not have treatment. The default is \code{NULL}, which means the heterogeneous treatment effects will be estimated from by the package.}
@@ -16,8 +16,6 @@ compute_qoi_user(user_hte, Tcv, Ycv, data, ngates, budget, ...)
 \item{data}{A data frame containing the variables of interest.}
 
 \item{ngates}{The number of gates to be used in the GATE function.}
-
-\item{budget}{The maximum percentage of population that can be treated under the budget constraint.}
 
 \item{...}{Additional arguments to be passed to the user-defined function.}
 }

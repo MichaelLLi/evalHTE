@@ -9,11 +9,9 @@ estimate_hte(
   form,
   data,
   algorithms,
-  budget = 0.5,
   n_folds = 5,
   split_ratio = 0,
   ngates = 5,
-  threshold = 0,
   preProcess = NULL,
   weights = NULL,
   trControl = caret::trainControl(method = "none"),
@@ -33,8 +31,6 @@ estimate_hte(
 \item{data}{A data frame that contains the outcome \code{y} and the treatment \code{T}.}
 
 \item{algorithms}{List of machine learning algorithms to be used.}
-
-\item{budget}{The maximum percentage of population that can be treated under the budget constraint.}
 
 \item{n_folds}{Number of cross-validation folds. Default is 5.}
 
@@ -57,8 +53,6 @@ estimate_hte(
 \item{SL_library}{A list of machine learning algorithms to be used in the super learner.}
 
 \item{...}{Additional arguments passed to \code{caret::train}.}
-
-\item{c_threshold}{The threshold for determining the treatment assignment under the ITR. Default is 0, which assumes all units with a score greater than 0 will receive treatment.}
 }
 \value{
 An object of \code{hte} class

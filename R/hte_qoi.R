@@ -12,7 +12,6 @@ compute_qoi <- function(fit_obj, algorithms) {
   Ycv    <- fit_obj$Ycv
   Tcv    <- fit_obj$Tcv
   indcv  <- fit_obj$indcv
-  budget <- fit_obj$budget
   cv     <- fit_obj$params$cv
 
   ## -----------------------------------------
@@ -90,21 +89,15 @@ compute_qoi <- function(fit_obj, algorithms) {
 #' @param Ycv A vector of the unit-level continuous outcome.
 #' @param data A data frame containing the variables of interest.
 #' @param ngates The number of gates to be used in the GATE function.
-#' @param budget The maximum percentage of population that can be treated under the budget constraint.
 #' @param ... Additional arguments to be passed to the user-defined function.
 #' @importFrom rlang .data
-compute_qoi_user <- function(user_hte, Tcv, Ycv, data, ngates, budget, ...) {
+compute_qoi_user <- function(user_hte, Tcv, Ycv, data, ngates, ...) {
 
   # parameters
   function_name <- as.character(substitute(user_hte))
 
   # HTE
   tau <- do.call(user_hte, list(data))
-  That <- ifelse(tau >= 0, 1, 0)
-
-  # HTE with budget constraint
-  That_p <- numeric(length(That))
-  That_p[sort(tau,decreasing =TRUE,index.return=TRUE)$ix[1:(floor(budget*length(tau))+1)]] = 1
 
   ## GATE
   GATE <- vector("list", length = length(user_hte))
