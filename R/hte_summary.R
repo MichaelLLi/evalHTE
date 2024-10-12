@@ -45,8 +45,11 @@ if(length(estimate_algs) != 0){
         estimate = gate,
         std.deviation = sd,
         algorithm = alg,
-        group = group
-      )
+        group = group,
+        z.score = statistic
+      ) %>%
+      select(
+        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
 
     urate_algs_vec <- fit$URATE %>%
       purrr::map(., ~ as_tibble(.)) %>%
@@ -73,7 +76,11 @@ if(length(estimate_algs) != 0){
         z.score = statistic
       ) %>%
       select(
-        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
+        algorithm, estimate, std.deviation, conf.low.uniform, z.score, p.value)
+
+    out <- list(
+      GATE = gate_algs_vec,
+      URATE = urate_algs_vec)
   }
 
   # compute quantities under cross-validation -----------------------------------------
@@ -107,7 +114,7 @@ if(length(estimate_algs) != 0){
 
   out <- list(
     GATE = gate_algs_vec,
-    URATE = gate_algs_vec)
+    URATE = urate_algs_vec)
 
 }
 
@@ -156,7 +163,7 @@ if(length(estimate_user) != 0){
         best_rate = rate[best_ind],
         conf.low.uniform = rate[best_ind] - 1.2*sd[best_ind] - 0.68* sd[length(sd)] * length(sd)/best_ind
       ) %>% 
-      filter(rate == best_rate) %>%
+      filter(rate == best_rate) %>% 
       rename(
         estimate = rate,
         std.deviation = sd,
@@ -164,7 +171,7 @@ if(length(estimate_user) != 0){
         z.score = statistic
       ) %>%
       select(
-        group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
+        algorithm, estimate, std.deviation, conf.low.uniform, z.score, p.value)
   
   out <- list(
     GATE = bind_rows(gate_algs_vec, gate_user_vec),
