@@ -1,57 +1,57 @@
-# function to call Julia and run optimization
-#' @import JuliaCall
-#' @importFrom JuliaCall julia_setup
-#' @importFrom JuliaCall julia_source
-#' @importFrom JuliaCall julia_eval
-run_optimization <- function() {
-  if (!check_julia_installation()) {
-    stop("Julia is not properly installed or configured. Please install the correct version of Julia and try again.")
-  }
+# # function to call Julia and run optimization
+# #' @import JuliaCall
+# #' @importFrom JuliaCall julia_setup
+# #' @importFrom JuliaCall julia_source
+# #' @importFrom JuliaCall julia_eval
+# run_optimization <- function() {
+#   if (!check_julia_installation()) {
+#     stop("Julia is not properly installed or configured. Please install the correct version of Julia and try again.")
+#   }
   
-  # Set up Julia
-  julia <- julia_setup()
+#   # Set up Julia
+#   julia <- julia_setup()
   
-  # Source the Julia file
-  JuliaCall::julia_source("optimization_code.jl")
+#   # Source the Julia file
+#   JuliaCall::julia_source("optimization_code.jl")
   
-  # Run the optimization
-  result <- JuliaCall::julia_eval("run_optimization()")
+#   # Run the optimization
+#   result <- JuliaCall::julia_eval("run_optimization()")
   
-  # Extract and return results as a list
-  return(
-    list(
-      beta_0 = result[[1]],
-      beta_1 = result[[2]],
-      normal_law = result[[3]],
-      alphas = result[[4]]
-    )
-  )
-}
+#   # Extract and return results as a list
+#   return(
+#     list(
+#       beta_0 = result[[1]],
+#       beta_1 = result[[2]],
+#       normal_law = result[[3]],
+#       alphas = result[[4]]
+#     )
+#   )
+# }
 
-# helper function to check if Julia is installed and working
-check_julia_installation <- function() {
-  tryCatch({
-    # Check if JuliaCall package is available
-    if (!requireNamespace("JuliaCall", quietly = TRUE)) {
-      stop("JuliaCall package is not installed. Please install it first.")
-    }
+# # helper function to check if Julia is installed and working
+# check_julia_installation <- function() {
+#   tryCatch({
+#     # Check if JuliaCall package is available
+#     if (!requireNamespace("JuliaCall", quietly = TRUE)) {
+#       stop("JuliaCall package is not installed. Please install it first.")
+#     }
 
-    # Try to set up Julia
-    julia <- JuliaCall::julia_setup(verbose = TRUE)
+#     # Try to set up Julia
+#     julia <- JuliaCall::julia_setup(verbose = TRUE)
     
-    # Check Julia version
-    version <- JuliaCall::julia_eval("VERSION")
-    if (package_version(version) < package_version("1.0.0")) {
-      stop("Julia version is too old. Please install Julia 1.0.0 or newer.")
-    }
+#     # # Check Julia version
+#     # version <- JuliaCall::julia_eval("VERSION")
+#     # if (package_version(version) <= package_version("1.0.0")) {
+#     #   stop("Julia version is too old. Please install Julia 1.0.0 or newer.")
+#     # }
     
-    # If Julia is installed and working
-    return(TRUE)
-  }, error = function(e) {
-    message("Julia check failed: ", e$message)
-    return(FALSE)
-  })
-}
+#     # If Julia is installed and working
+#     return(TRUE)
+#   }, error = function(e) {
+#     message("Julia check failed: ", e$message)
+#     return(FALSE)
+#   })
+# }
 
 # helper function to plot the GATE estimates
 gate_ggplot <- function(data) {
