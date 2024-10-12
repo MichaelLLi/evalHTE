@@ -127,8 +127,13 @@ if(length(estimate_user) != 0){
         estimate = gate,
         std.deviation = sd,
         algorithm = alg,
-        group = group
-      )
+        group = group,
+        z.score = statistic,
+        ci.lower = lower,
+        ci.upper = upper
+      ) %>%
+      select(
+        group, algorithm, estimate, std.deviation, ci.lower, ci.upper, z.score, p.value)
     
     # exceptional reponders 
     urate_user_vec <- fit$URATE %>%
@@ -153,8 +158,13 @@ if(length(estimate_user) != 0){
       rename(
         estimate = rate,
         std.deviation = sd,
-        algorithm = alg
-      )
+        algorithm = alg,
+        z.score = statistic,
+        ci.lower = lower,
+        ci.upper = upper
+      ) %>%
+      select(
+        group, algorithm, estimate, std.deviation, ci.lower, ci.upper, z.score, p.value)
   
   out <- list(
     GATE = bind_rows(gate_algs_vec, gate_user_vec),
