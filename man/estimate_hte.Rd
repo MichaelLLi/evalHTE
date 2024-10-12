@@ -9,11 +9,11 @@ estimate_hte(
   form,
   data,
   algorithms,
-  budget,
+  budget = 0.5,
   n_folds = 5,
   split_ratio = 0,
   ngates = 5,
-  c_threshold = 0,
+  threshold = 0,
   preProcess = NULL,
   weights = NULL,
   trControl = caret::trainControl(method = "none"),
@@ -21,6 +21,7 @@ estimate_hte(
   tuneLength = ifelse(trControl$method == "none", 1, 3),
   user_model = NULL,
   SL_library = NULL,
+  meta_learner = "slearner",
   ...
 )
 }
@@ -41,8 +42,6 @@ estimate_hte(
 
 \item{ngates}{The number of groups to separate the data into. The groups are determined by tau. Default is 5.}
 
-\item{c_threshold}{The threshold for determining the treatment assignment under the ITR. Default is 0, which assumes all units with a score greater than 0 will receive treatment.}
-
 \item{preProcess}{caret parameter}
 
 \item{weights}{caret parameter}
@@ -58,6 +57,8 @@ estimate_hte(
 \item{SL_library}{A list of machine learning algorithms to be used in the super learner.}
 
 \item{...}{Additional arguments passed to \code{caret::train}.}
+
+\item{c_threshold}{The threshold for determining the treatment assignment under the ITR. Default is 0, which assumes all units with a score greater than 0 will receive treatment.}
 }
 \value{
 An object of \code{hte} class
