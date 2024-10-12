@@ -63,22 +63,17 @@ data_user = tibble()
 # estimate HTE from ML algorithms
 # -----------------------------------------
 
-# run optimization in Julia
-# results <- run_optimization()
-results <- test
+# load the beta values
+results <- readRDS("data/optimization_values.rds")
 
-if (is.null(results)) {
-  warning("Julia optimization failed. Using default values.")
-  min_uniform_beta_0 <- 1.2
-  min_uniform_beta_1 <- 0.68
-  min_pointwise_score <- 1.96
-} else {
+# round the alpha to 2 decimal places
+alpha_round <- round(alpha, 2)
 
-  # get the optimal parameters
-  min_uniform_beta_0 <- results$beta_0[results$alphas == alpha]
-  min_uniform_beta_1 <- results$beta_1[results$alphas == alpha]
-  min_pointwise_score <- results$normal_law[results$alphas == alpha]
-}
+# get the optimal parameters
+min_uniform_beta_0 <- results$beta_0[results$alphas == alpha_round]
+min_uniform_beta_1 <- results$beta_1[results$alphas == alpha_round]
+min_pointwise_score <- results$normal_law[results$alphas == alpha_round]
+
 
 # get the estimate from ML algorithms
 if(length(estimate_algs) != 0){
@@ -107,10 +102,7 @@ if(length(estimate_algs) != 0){
       bind_rows() %>% 
       mutate(
         RATEmin = rate - min_uniform_beta_1*sd - min_uniform_beta_0*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-        # get the z-score 
-        z_alpha = qnorm(1-alpha),
-        RATEpoint = rate - z_alpha*sd, 
-        # RATEpoint = rate - min_pointwise_score*sd, 
+        RATEpoint = rate - min_pointwise_score*sd, 
         fraction = rep(seq(1,length(Ycv))/length(Ycv), length(algorithms)),
         type = lapply(algorithms, function(x)rep(x,length(Ycv))) %>% unlist
   ) %>%
@@ -143,10 +135,7 @@ if(length(estimate_user) != 0){
     bind_rows() %>%
     mutate(
       RATEmin = rate - min_uniform_beta_1*sd - min_uniform_beta_0*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-      # get the z-score of alpha 
-      z_alpha = qnorm(1-alpha),
-      RATEpoint = rate - z_alpha*sd,
-      # RATEpoint = rate - min_pointwise_score*sd, 
+      RATEpoint = rate - min_pointwise_score*sd, 
       fraction = rep(seq(1,length(Ycv))/length(Ycv), 1),
       type = lapply("user-defined", function(x)rep(x,length(Ycv))) %>% unlist) %>%
     rename(
@@ -163,6 +152,8 @@ if(length(estimate_user) != 0){
 
 # dataframe for plotting
 data <- bind_rows(data_algs, data_user)
+
+saveRDS(data, "data.rds")
 
 # plot   
 ggplot(data, aes(x=fraction, y=value)) +
