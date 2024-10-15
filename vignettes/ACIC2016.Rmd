@@ -1,0 +1,205 @@
+---
+title: "ACIC2016"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACIC2016}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+
+# function to simulate data
+simulate_data <- function(truth, covariates, n, random.seed, sigma_y = 1) {
+
+    # set seed
+    random.seed <- list(seed = random.seed, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
+    suppressWarnings(do.call("set.seed", random.seed))
+    
+    # sample data n = 100, 500, 2500
+    selected_sample = sample(1:length(truth$y),n, replace = FALSE)
+    mu.0 = truth$mu.0[selected_sample]
+    mu.1 = truth$mu.1[selected_sample]
+    x = covariates[selected_sample,]
+    
+    # assign treatment
+    n1=round(n/2)
+    n0=n-n1
+    zind=sample(1:n,size=n1)
+    z=numeric(n)
+    z[zind]=1
+    mu = z * mu.1 + (1-z) * mu.0
+    y <- mu + sigma_y*rnorm(n)
+
+    return(
+        list(
+            x = x,
+            z = z,
+            y = y,
+            mu.1 = mu.1,
+            mu.0 = mu.0
+        )
+    )
+}
+
+
+# function to get true GATE
+trueGATE <- function(truth, tau, ngates = 5) {
+  n = length(tau)
+  fd_label = ntile(tau, ngates)
+  gates = numeric(ngates)
+  for (i in 1:ngates) {
+    gates[i] = mean(truth$mu.1[fd_label == i] - truth$mu.0[fd_label == i])
+  }
+  return(gates)
+}
+
+# function to get true GATE via cross-fitting
+compute_true_GATE <- function(truth, input_x, full_data, n_sample, nfolds, ngates, iter) {
+
+  # get training data
+  n_train = round(n_sample*(nfolds-1)/nfolds)
+  train_data = simulate_data(truth, input_x, n_train, iter)
+
+  # fit causal forest
+  cf_train = causal_forest(
+    model.matrix(~.-1, data = train_data$x),
+    train_data$y,
+    train_data$z,
+    num.trees = 1000,
+    tune.parameters =  c("all")
+  )
+
+  # get test data
+  tau_test = predict(cf_train, newdata = model.matrix(~.-1, data = full_data$x))$predictions
+
+  # estimate GATE
+  gate_test = trueGATE(full_data, tau_test, ngates)
+
+  return(tibble(
+    iter = iter,
+    group = 1:ngates,
+    gate = gate_test
+  ))
+}
+
+
+# function to compute GATE bounds with evalHTE package
+compute_GATE_bounds_pkg <- function(truth, input_x, n_sample, nfolds, ngates, n_iter, algs) {
+  # get training data
+  full_data = simulate_data(truth, input_x, n_sample, n_iter)
+
+  # create data
+  df = data.frame(
+    full_data$x,
+    y = full_data$y,
+    z = full_data$z
+  )
+
+  # specify formula
+  cov_names = input_x %>% names()
+  user_formula <- paste0("y ~ z*(", paste(cov_names, collapse = " + "), ")")
+
+  # run with evalITR package
+  fit <- estimate_hte(
+    treatment = "z",
+    form = user_formula,
+    data = df,
+    algorithms = algs,
+    n_folds = nfolds,
+    meta_learner = "slearner")
+
+  # evaluate HTE
+  est <- evaluate_hte(fit)
+  gate_pkg <- summary(est)$GATE
+
+  return(gate_pkg)
+  
+}
+
+# function to loop over n_sim for true GATE
+run_simluation_gate <- function(truth, input_x, full_data, n_sample, nfolds, ngates, n_sim) {
+
+  # loop over n_sim
+  results = future_map(1:n_sim, ~compute_true_GATE(truth, input_x, full_data, n_sample, nfolds, ngates, .x),
+    .options = furrr_options(seed = 123)
+  ) %>% bind_rows()
+
+  return(results)
+}
+
+
+# function to loop over n_sim for gate sd
+run_simluation_gate_sd <- function(truth, input_x, n_sample, nfolds, ngates, n_sim, pkg = FALSE, algs = c("causal_forest")) {
+
+    # if pkg == FALSE, compute GATE bounds using michael's original code
+    if (pkg == FALSE) {
+        results = future_map(1:n_sim, ~compute_GATE_bounds(truth, input_x, n_sample, nfolds, ngates, .x),
+        .options = furrr_options(seed = 123)
+  ) %>% bind_rows()
+
+    } else {
+        # if pkg == TRUE, compute GATE bounds using evalITR package
+        results = future_map(1:n_sim, ~compute_GATE_bounds_pkg(truth, input_x, n_sample, nfolds, ngates, .x, algs = algs),
+        .options = furrr_options(seed = 123)
+  ) %>% bind_rows()
+
+    }
+
+  return(results)
+}
+
+```
+
+
+```{r}
+library(evalHTE)
+library(future)
+library(furrr)
+library(magrittr)
+n_workers = detectCores() - 1
+plan(multisession, workers = n_workers)
+
+# load ACIC 2016 data
+library(aciccomp2016)
+input_x = input_2016
+truth = dgp_2016(input_x, 28, 1)
+full_data = simulate_data(truth, input_x, nrow(input_x), 2021)
+
+# parameters
+n_sample = 500
+n_sim = 100
+n_folds = 5
+n_gates = 5
+
+# compute true GATE
+results_gate = run_simluation_gate(truth, input_x, full_data, n_sample, n_folds, n_gates, n_sim)
+
+# compute GATE bounds
+results_sd_pkg = run_simluation_gate_sd(truth, input_x, n_sample, n_folds, n_gates, n_sim, pkg = TRUE, algs = c("causal_forest"))
+
+# check coverage
+results_sd_pkg %>%
+  left_join(results_gate, by = c("iter", "group")) %>%
+  mutate(
+    upper = gate + 1.96 * std.deviation,
+    lower = gate - 1.96 * std.deviation,
+    upper_1.5 = gate + 1.96 * 1.5 * std.deviation,
+    lower_1.5 = gate - 1.96 * 1.5 * std.deviation,
+    coverage = ((upper > true_gate) & (lower < true_gate)) * 1,
+    coverage_1.5 = ((upper_1.5 > true_gate) & (lower_1.5 < true_gate)) * 1
+  ) %>%
+  summarise(
+    coverage = mean(coverage),
+    coverage_1.5 = mean(coverage_1.5)
+  )
+
+
+```
