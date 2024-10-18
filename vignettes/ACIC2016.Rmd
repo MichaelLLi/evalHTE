@@ -91,6 +91,56 @@ compute_true_GATE <- function(truth, input_x, full_data, n_sample, nfolds, ngate
 }
 
 
+# function to compute GATE bounds with michael's original code
+compute_GATE_bounds <- function(truth, input_x, n_sample, nfolds, ngates, n_iter) {
+
+  # get training data
+  full_data = simulate_data(truth, input_x, n_sample, n_iter)
+
+  # create folds
+  folds = caret::createFolds(full_data$y, k = nfolds)
+  indcv = numeric(n_sample)
+  tauCV = matrix(0, nrow = n_sample, ncol = nfolds)
+
+  for (i in 1:nfolds) {
+    x_full = model.matrix(~.-1, data = full_data$x)
+    x_train = x_full[-folds[[i]], ]
+    y_train = full_data$y[-folds[[i]]]
+    z_train = full_data$z[-folds[[i]]]
+
+    x_test = x_full[folds[[i]], ]
+    y_test = full_data$y[folds[[i]]]
+    z_test = full_data$z[folds[[i]]]
+
+    # fit causal forest
+    cf_train = causal_forest(
+      x_train,
+      y_train,
+      z_train,
+      tune.parameters = c("all"),
+      num.trees = 1000
+    )
+
+    # compute tau
+    tauCV[, i] = predict(cf_train, x_full)$predictions 
+    indcv[folds[[i]]] = rep(i, nrow(x_test))
+  }
+  
+  # compute GATE
+  output = GATEcv(full_data$z, tauCV, full_data$y, indcv, ngates = ngates)
+
+  
+  return(
+    list(
+      group = 1:ngates,
+      gate = output$gate,
+      sd = output$sd,
+      upper = output$gate + 1.96 * output$sd,
+      lower = output$gate - 1.96 * output$sd
+    )
+  )
+}
+
 # function to compute GATE bounds with evalHTE package
 compute_GATE_bounds_pkg <- function(truth, input_x, n_sample, nfolds, ngates, n_iter, algs) {
   # get training data
