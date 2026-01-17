@@ -214,6 +214,7 @@ library(evalHTE)
 library(future)
 library(furrr)
 library(magrittr)
+library(parallel)
 n_workers = detectCores() - 1
 plan(multisession, workers = n_workers)
 

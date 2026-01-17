@@ -29,12 +29,18 @@ return(out)
 
 }
 
+#' Plot Confidence Intervals
+#'
+#' A generic function to plot uniform and pointwise confidence intervals for HTE objects.
+#'
+#' @param x An object for which a plot is desired.
+#' @param ... Further arguments passed to methods.
 #' @export
 plot_CI <- function(x, ...) {
   UseMethod("plot_CI")
 }
 
-#' Plot the uniform confidence interval 
+#' Plot the uniform confidence interval
 #' @import ggplot2
 #' @import ggthemes
 #' @importFrom stats sd
@@ -48,7 +54,7 @@ plot_CI <- function(x, ...) {
 #' @return A plot of ggplot2 object.
 #' @export
 plot_CI.hte <- function(
-  x, 
+  x,
   alpha = 0.05,
   ...){
 
@@ -64,7 +70,8 @@ data_user = tibble()
 # -----------------------------------------
 
 # load the beta values
-results <- readRDS("data/optimization_values.rds")
+file_path <- system.file("extdata", "optimization_values.rds", package = "evalHTE")
+results <- readRDS(file_path)
 
 # round the alpha to 2 decimal places
 alpha_round <- round(alpha, 2)
@@ -99,15 +106,15 @@ if(length(estimate_algs) != 0){
     Ycv = estimate_algs$estimates[['Ycv']] %>% as.numeric()
 
     purrr::map(fit$URATE, ~.x) %>%
-      bind_rows() %>% 
+      bind_rows() %>%
       mutate(
         RATEmin = rate - min_uniform_beta_1*sd - min_uniform_beta_0*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-        RATEpoint = rate - min_pointwise_score*sd, 
+        RATEpoint = rate - min_pointwise_score*sd,
         fraction = rep(seq(1,length(Ycv))/length(Ycv), length(algorithms)),
         type = lapply(algorithms, function(x)rep(x,length(Ycv))) %>% unlist
   ) %>%
     rename(
-    `GATE estimate` = rate, 
+    `GATE estimate` = rate,
     `Uniform lower band` = RATEmin,
     `Pointwise lower band` =RATEpoint) %>%
     tidyr::pivot_longer(
@@ -135,11 +142,11 @@ if(length(estimate_user) != 0){
     bind_rows() %>%
     mutate(
       RATEmin = rate - min_uniform_beta_1*sd - min_uniform_beta_0*sd[length(sd)]*length(sd)/seq(1, length(sd)),
-      RATEpoint = rate - min_pointwise_score*sd, 
+      RATEpoint = rate - min_pointwise_score*sd,
       fraction = rep(seq(1,length(Ycv))/length(Ycv), 1),
       type = lapply("user-defined", function(x)rep(x,length(Ycv))) %>% unlist) %>%
     rename(
-    `GATE estimate` = rate, 
+    `GATE estimate` = rate,
     `Uniform lower band` = RATEmin,
     `Pointwise lower band` =RATEpoint) %>%
     tidyr::pivot_longer(
@@ -155,17 +162,17 @@ data <- bind_rows(data_algs, data_user)
 
 saveRDS(data, "data.rds")
 
-# plot   
+# plot
 ggplot(data, aes(x=fraction, y=value)) +
-  geom_line(alpha=0.8, aes(color = Type)) +  
+  geom_line(alpha=0.8, aes(color = Type)) +
   scale_colour_few("Dark") +
-  scale_linewidth_continuous(range = c(0.5, 1.5)) + 
+  scale_linewidth_continuous(range = c(0.5, 1.5)) +
   xlab("Maximum Proportion Treated") +
   ylab("GATE Estimates") +
   facet_wrap(~type) +
   scale_x_continuous(labels=scales::percent) +
   theme_few() +
-  geom_hline(yintercept = 0, color = "black", linewidth = 0.5, linetype = "dotted") + 
+  geom_hline(yintercept = 0, color = "black", linewidth = 0.5, linetype = "dotted") +
   theme(
     legend.position = "right",
     text = element_text(size=13.5),

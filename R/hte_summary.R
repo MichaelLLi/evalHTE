@@ -1,6 +1,6 @@
 #' Summarize Heterogeneity and Consistency Tests
 #' @param object An object of \code{evaluate_hte} class (typically an output of \code{evaluate_hte()} function).
-#' @param ... Other parameters. 
+#' @param ... Other parameters.
 #' @import purrr
 #' @importFrom stats pnorm
 #' @export
@@ -17,7 +17,7 @@ summary.hte <- function(object, ...) {
   # fit         <- object$qoi
 
 # -----------------------------------------
-# estimate HTE from ML algorithms 
+# estimate HTE from ML algorithms
 # -----------------------------------------
 
 if(length(estimate_algs) != 0){
@@ -31,7 +31,7 @@ if(length(estimate_algs) != 0){
 
   if (cv == FALSE) {
 
-    # group HTE    
+    # group HTE
     gate_algs_vec <- fit$GATE %>%
       purrr::map(., ~ as_tibble(.)) %>%
       bind_rows() %>%
@@ -67,7 +67,7 @@ if(length(estimate_algs) != 0){
         proportion = fraction[best_ind],
         best_rate = rate[best_ind],
         conf.low.uniform = rate[best_ind] - 1.2*sd[best_ind] - 0.68* sd[length(sd)] * length(sd)/best_ind
-      ) %>% 
+      ) %>%
       filter(rate == best_rate) %>%
       rename(
         estimate = rate,
@@ -86,7 +86,7 @@ if(length(estimate_algs) != 0){
   # compute quantities under cross-validation -----------------------------------------
 
   if (cv == TRUE) {
-    
+
     # group HTE
     gate_algs_vec <- fit$GATE %>%
       map(., ~ as_tibble(.)) %>%
@@ -144,8 +144,8 @@ if(length(estimate_user) != 0){
       ) %>%
       select(
         group, algorithm, estimate, std.deviation, lower, upper, z.score, p.value)
-    
-    # exceptional reponders 
+
+    # exceptional reponders
     urate_user_vec <- fit$URATE %>%
       map(., ~ as_tibble(.)) %>%
       bind_rows() %>%
@@ -162,8 +162,8 @@ if(length(estimate_user) != 0){
         proportion = fraction[best_ind],
         best_rate = rate[best_ind],
         conf.low.uniform = rate[best_ind] - 1.2*sd[best_ind] - 0.68* sd[length(sd)] * length(sd)/best_ind
-      ) %>% 
-      filter(rate == best_rate) %>% 
+      ) %>%
+      filter(rate == best_rate) %>%
       rename(
         estimate = rate,
         std.deviation = sd,
@@ -172,7 +172,7 @@ if(length(estimate_user) != 0){
       ) %>%
       select(
         algorithm, estimate, std.deviation, conf.low.uniform, z.score, p.value)
-  
+
   out <- list(
     GATE = bind_rows(gate_algs_vec, gate_user_vec),
     URATE = bind_rows(urate_algs_vec, urate_user_vec)
@@ -206,13 +206,13 @@ print.summary.hte <- function(x, ...) {
     print(as.data.frame(x[["URATE"]]), digits = 2)
   }
   cli::cat_line("")
-  
+
 }
 
 
-#' Summarize Hetereogeneity and Consistency Tests
+#' Summarize Heterogeneity and Consistency Tests
 #' @param object An object of \code{test_hte} class (typically an output of \code{test_hte()} function).
-#' @param ... Other parameters. 
+#' @param ... Other parameters.
 #' @importFrom stats pnorm
 #' @export
 summary.test_hte <- function(object, ...) {
@@ -248,11 +248,11 @@ summary.test_hte <- function(object, ...) {
       rename(statistic = stat,
             p.value = pval) %>%
       select(algorithm, statistic, p.value)
-  } 
+  }
 
 
   if (names(object[1]) == "consistcv") {
-    
+
     # parameters for test_hte object
     consist <- object$consistcv
     het <- object$hetcv
@@ -285,7 +285,7 @@ summary.test_hte <- function(object, ...) {
 #' Print
 #' @importFrom cli cat_rule
 #' @param x An object of \code{summary.test_hte} class. This is typically an output of \code{summary.test_hte()} function.
-#' @param ... Other parameters. 
+#' @param ... Other parameters.
 #' @export
 print.summary.test_hte <- function(x, ...) {
 

@@ -4,7 +4,10 @@
 #'
 #' The details of the methods for this design are given in Imai and Li (2022).
 #'
-#'
+#' @importFrom stats var cov pchisq
+#' @importFrom MASS ginv mvrnorm
+#' @importFrom Matrix nearPD
+#' @importFrom quadprog solve.QP
 #' @param T A vector of the unit-level binary treatment receipt variable for each sample.
 #' @param tau A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.
 #' @param Y A vector of the outcome variable of interest for each sample.

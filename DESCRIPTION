@@ -1,12 +1,12 @@
 Package: evalHTE
 Title: Evaluating Heterogeneous Treatment Effects
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
     person("Michael Lingzhi", "Li", , "mili@hbs.edu", role = c("aut", "cre")),
     person("Kosuke", "Imai", , "imai@harvard.edu", role = "aut"),
     person("Jialu", "Li", , "jialu_li@g.harvard.edu", role = "ctb")
   )
-Description: Provides various statistical methods for evaluating heterogeneous treatment effects (HTE) in randomized experiments. The package includes tools to estimate uniform confidence bands for estimation of the group average treatment effect sorted by generic ML algorithm (GATES). It also provides the tools to dentify a subgroup of individuals who are likely to benefit from a treatment the most "exceptional responders" or those who are harmed by it. Detailed reference in Imai and Li (2023) <arXiv:2310.07973>.
+Description: Provides various statistical methods for evaluating heterogeneous treatment effects (HTE) in randomized experiments. The package includes tools to estimate uniform confidence bands for estimation of the group average treatment effect sorted by generic ML algorithm (GATES). It also provides the tools to identify a subgroup of individuals who are likely to benefit from a treatment the most "exceptional responders" or those who are harmed by it. Detailed reference in Imai and Li (2023) <arXiv:2310.07973>.
 License: MIT + file LICENSE
 Depends: 
     R (>= 2.10),
@@ -23,11 +23,14 @@ Imports:
     scales,
     tidyr,
     stats,
-    JuliaCall,
-    purrr
+    purrr,
+    Matrix,
+    MASS,
+    quadprog,
+    caret
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests: 
     knitr,
     rmarkdown

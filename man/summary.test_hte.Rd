@@ -2,7 +2,7 @@
 % Please edit documentation in R/hte_summary.R
 \name{summary.test_hte}
 \alias{summary.test_hte}
-\title{Summarize Hetereogeneity and Consistency Tests}
+\title{Summarize Heterogeneity and Consistency Tests}
 \usage{
 \method{summary}{test_hte}(object, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Other parameters.}
 }
 \description{
-Summarize Hetereogeneity and Consistency Tests
+Summarize Heterogeneity and Consistency Tests
 }

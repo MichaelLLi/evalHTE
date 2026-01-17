@@ -48,9 +48,11 @@ estimate_hte(
 
 \item{tuneLength}{caret parameter}
 
-\item{user_model}{A user-defined function to estimate heterogeneous treatment effects. The function should take the data as input and return a model to estimate the HTE.}
+\item{user_model}{A user-defined function to estimate heterogeneous treatment effects.}
 
 \item{SL_library}{A list of machine learning algorithms to be used in the super learner.}
+
+\item{meta_learner}{The type of meta-learner to use (e.g., "slearner", "tlearner"). Default is "slearner".}
 
 \item{...}{Additional arguments passed to \code{caret::train}.}
 }

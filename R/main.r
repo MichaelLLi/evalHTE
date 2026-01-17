@@ -1,23 +1,19 @@
 #' Evaluate Heterogeneous Treatment Effects
 #' @param treatment Treatment variable
 #' @param form a formula object that takes the form \code{y ~ T + x1 + x2 + ...}.
-#' @param data
-#'   A data frame that contains the outcome \code{y} and the treatment \code{T}.
-#' @param algorithms
-#'   List of machine learning algorithms to be used.
-#' @param n_folds
-#'   Number of cross-validation folds. Default is 5.
-#' @param split_ratio
-#'   Split ratio between train and test set under sample splitting. Default is 0.
-#' @param ngates
-#'   The number of groups to separate the data into. The groups are determined by tau. Default is 5.
+#' @param data A data frame that contains the outcome \code{y} and the treatment \code{T}.
+#' @param algorithms List of machine learning algorithms to be used.
+#' @param n_folds Number of cross-validation folds. Default is 5.
+#' @param split_ratio Split ratio between train and test set under sample splitting. Default is 0.
+#' @param ngates The number of groups to separate the data into. The groups are determined by tau. Default is 5.
 #' @param preProcess caret parameter
 #' @param weights caret parameter
 #' @param trControl caret parameter
 #' @param tuneGrid caret parameter
 #' @param tuneLength caret parameter
-#' @param user_model A user-defined function to estimate heterogeneous treatment effects. The function should take the data as input and return a model to estimate the HTE.
+#' @param user_model A user-defined function to estimate heterogeneous treatment effects.
 #' @param SL_library A list of machine learning algorithms to be used in the super learner.
+#' @param meta_learner The type of meta-learner to use (e.g., "slearner", "tlearner"). Default is "slearner".
 #' @param ... Additional arguments passed to \code{caret::train}.
 #' @import dplyr
 #' @importFrom rlang !! sym
@@ -61,7 +57,7 @@ estimate_hte <- function(
     SL_library = SL_library,
     meta_learner = meta_learner,
     ...)
-  
+
   # return the fit
   return(fit)
 }
@@ -110,9 +106,16 @@ evaluate_hte <- function(
 
   # get HTE from the user-defined function
   if(!is.null(user_model)){
-    df  = data
-    Ycv = data[, outcome]
-    Tcv = data[, treatment]
+    # Corrected variable mapping from the fit object
+    data_df    <- fit$df$data
+    outcome    <- fit$df$outcome
+    treatment  <- fit$df$treatment
+    ngates     <- fit$estimates$params$ngates
+    budget     <- fit$estimates$budget
+
+    # Extract CV vectors
+    Ycv <- data_df[[outcome]]
+    Tcv <- data_df[[treatment]]
 
     estimates <- list(
       Ycv = Ycv,
@@ -123,7 +126,7 @@ evaluate_hte <- function(
     # compute qoi
     qoi   <- vector("list", length = length(outcome))
     qoi   <- compute_qoi_user(
-      user_model, Tcv, Ycv, data, ngates, budget, ...)
+      user_model, Tcv, Ycv, data_df, ngates, budget, ...)
 
     # store the results
     out_user <- list(
@@ -254,5 +257,5 @@ test_itr <- function(
 }
 
 
-utils::globalVariables(c("T", "aupec", "sd", "pval", "Pval", "aupec.y", "fraction", "AUPECmin", "AUPECmax", ".", "fit", "out", "pape", "alg", "papep", "papd", "type", "gate", "group", "qnorm", "vec", "Y", "algorithm", "statistic", "p.value", "GATEcv", "RATEmin", "RATEpoint", "Type", "best_ind", "best_rate", "consist.test", "consistcv.test", "est", "gettaucv", "het.test", "hetcv.test", "rate", "value", "map", "model.matrix", "quantile","rnorm"))
+utils::globalVariables(c("T", "aupec", "sd", "pval", "Pval", "aupec.y", "fraction", "AUPECmin", "AUPECmax", ".", "fit", "out", "pape", "alg", "papep", "papd", "type", "gate", "group", "qnorm", "vec", "Y", "algorithm", "statistic", "p.value", "GATEcv", "RATEmin", "RATEpoint", "Type", "best_ind", "best_rate", "consist.test", "consistcv.test", "est", "gettaucv", "het.test", "hetcv.test", "rate", "value", "map", "model.matrix", "quantile","rnorm","estimate", "std.deviation", "lower", "upper", "z.score", "conf.low.uniform"))
 
