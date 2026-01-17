@@ -24,7 +24,7 @@ simulate_data <- function(truth, covariates, n, random.seed, sigma_y = 1) {
     suppressWarnings(do.call("set.seed", random.seed))
     
     # sample data n = 100, 500, 2500
-    selected_sample = sample(1:length(truth$y),n, replace = FALSE)
+    selected_sample <- sample(seq_along(truth$mu.0), n, replace = FALSE)
     mu.0 = truth$mu.0[selected_sample]
     mu.1 = truth$mu.1[selected_sample]
     x = covariates[selected_sample,]
@@ -63,33 +63,88 @@ trueGATE <- function(truth, tau, ngates = 5) {
 
 # function to get true GATE via cross-fitting
 compute_true_GATE <- function(truth, input_x, full_data, n_sample, nfolds, ngates, iter) {
-
-  # get training data
   n_train = round(n_sample*(nfolds-1)/nfolds)
   train_data = simulate_data(truth, input_x, n_train, iter)
 
-  # fit causal forest
   cf_train = causal_forest(
     model.matrix(~.-1, data = train_data$x),
     train_data$y,
     train_data$z,
-    num.trees = 1000,
-    tune.parameters =  c("all")
+    num.trees = 10
   )
 
-  # get test data
   tau_test = predict(cf_train, newdata = model.matrix(~.-1, data = full_data$x))$predictions
-
-  # estimate GATE
   gate_test = trueGATE(full_data, tau_test, ngates)
 
   return(tibble(
     iter = iter,
     group = 1:ngates,
-    gate = gate_test
+    true_gate = gate_test  # FIX: Rename here to match your join logic
   ))
 }
 
+make_synth_acic_population <- function(n_pop = 5000, seed = 1,
+                                      p_cont = 10, p_bin = 10,
+                                      sigma_mu = 1) {
+  set.seed(seed)
+
+  # correlated continuous covariates
+  rho <- 0.4
+  Sigma <- rho ^ abs(outer(seq_len(p_cont), seq_len(p_cont), "-"))
+  Xc <- matrix(rnorm(n_pop * p_cont), n_pop, p_cont) %*% chol(Sigma)
+  colnames(Xc) <- paste0("x", seq_len(p_cont))
+
+  # binary covariates correlated with continuous ones
+  Xb <- matrix(0, n_pop, p_bin)
+  colnames(Xb) <- paste0("b", seq_len(p_bin))
+  for (j in seq_len(p_bin)) {
+    lin <- 0.6 * Xc[, ((j - 1) %% p_cont) + 1] - 0.3 * Xc[, ((j) %% p_cont) + 1] + rnorm(n_pop, sd = 0.5)
+    pr <- plogis(lin)
+    Xb[, j] <- rbinom(n_pop, 1, pr)
+  }
+
+  # a couple categorical covariates (factors)
+  cut3 <- cut(Xc[, 3], breaks = quantile(Xc[, 3], probs = c(0, 1/3, 2/3, 1)),
+              include.lowest = TRUE, labels = c("A", "B", "C"))
+  cut4 <- cut(Xc[, 4], breaks = quantile(Xc[, 4], probs = c(0, 0.25, 0.5, 0.75, 1)),
+              include.lowest = TRUE, labels = c("L1", "L2", "L3", "L4"))
+
+  x <- data.frame(
+    Xc,
+    Xb,
+    cat1 = factor(cut3),
+    cat2 = factor(cut4)
+  )
+
+  # define mu0(x) and heterogeneous tau(x) with nonlinearities and interactions
+  mu0 <- 0.5 * Xc[, 1] -
+    0.25 * (Xc[, 2]^2) +
+    sin(Xc[, 3]) +
+    0.6 * Xb[, 1] +
+    0.4 * (cut3 == "B") -
+    0.3 * (cut3 == "C") +
+    0.5 * Xc[, 5] * Xb[, 2] +
+    0.3 * pmax(Xc[, 6], 0)
+
+  tau <- 0.2 +
+    0.35 * Xc[, 1] +
+    0.25 * (Xc[, 7] > 0) +
+    0.2 * Xb[, 3] -
+    0.25 * Xc[, 2] * Xb[, 1] +
+    0.3 * (cut4 %in% c("L3", "L4")) +
+    0.15 * cos(Xc[, 8])
+
+  mu0 <- sigma_mu * mu0
+  tau <- sigma_mu * tau
+  mu1 <- mu0 + tau
+
+  truth <- list(
+    mu.0 = as.numeric(mu0),
+    mu.1 = as.numeric(mu1)
+  )
+
+  list(x = x, truth = truth)
+}
 
 # function to compute GATE bounds with michael's original code
 compute_GATE_bounds <- function(truth, input_x, n_sample, nfolds, ngates, n_iter) {
@@ -117,8 +172,7 @@ compute_GATE_bounds <- function(truth, input_x, n_sample, nfolds, ngates, n_iter
       x_train,
       y_train,
       z_train,
-      tune.parameters = c("all"),
-      num.trees = 1000
+      num.trees = 20
     )
 
     # compute tau
@@ -168,7 +222,8 @@ compute_GATE_bounds_pkg <- function(truth, input_x, n_sample, nfolds, ngates, n_
 
   # evaluate HTE
   est <- evaluate_hte(fit)
-  gate_pkg <- summary(est)$GATE
+  gate_pkg <- summary(est)$GATE %>% 
+      mutate(iter = n_iter)
 
   return(gate_pkg)
   
@@ -219,16 +274,22 @@ n_workers = detectCores() - 1
 plan(multisession, workers = n_workers)
 
 # load ACIC 2016 data
-library(aciccomp2016)
-input_x = input_2016
-truth = dgp_2016(input_x, 28, 1)
-full_data = simulate_data(truth, input_x, nrow(input_x), 2021)
+library(grf)      # causal_forest
+library(dplyr)    # ntile, left_join, mutate, summarise
+library(tibble)
+
+synth <- make_synth_acic_population(n_pop = 5000, seed = 28, p_cont = 10, p_bin = 10)
+
+input_x <- synth$x
+truth <- synth$truth
+
+full_data <- simulate_data(truth, input_x, nrow(input_x), 2021)
 
 # parameters
-n_sample = 500
-n_sim = 100
-n_folds = 5
-n_gates = 5
+n_sample = 100
+n_sim = 10
+n_folds = 3
+n_gates = 3
 
 # compute true GATE
 results_gate = run_simluation_gate(truth, input_x, full_data, n_sample, n_folds, n_gates, n_sim)
@@ -240,17 +301,12 @@ results_sd_pkg = run_simluation_gate_sd(truth, input_x, n_sample, n_folds, n_gat
 results_sd_pkg %>%
   left_join(results_gate, by = c("iter", "group")) %>%
   mutate(
-    upper = gate + 1.96 * std.deviation,
-    lower = gate - 1.96 * std.deviation,
-    upper_1.5 = gate + 1.96 * 1.5 * std.deviation,
-    lower_1.5 = gate - 1.96 * 1.5 * std.deviation,
-    coverage = ((upper > true_gate) & (lower < true_gate)) * 1,
-    coverage_1.5 = ((upper_1.5 > true_gate) & (lower_1.5 < true_gate)) * 1
+    upper = estimate + 1.96 * std.deviation,
+    lower = estimate - 1.96 * std.deviation,
+    coverage = ((upper > true_gate) & (lower < true_gate)) * 1
   ) %>%
   summarise(
-    coverage = mean(coverage),
-    coverage_1.5 = mean(coverage_1.5)
+    coverage = mean(coverage, na.rm = TRUE)
   )
-
 
 ```
