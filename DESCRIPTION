@@ -6,10 +6,10 @@ Authors@R: c(
     person("Kosuke", "Imai", email = "imai@harvard.edu", role = "aut"),
     person("Jialu", "Li",  email = "jialu_li@g.harvard.edu", role = "ctb")
   )
-Description: Provides various statistical methods for evaluating heterogeneous treatment effects (HTE) in randomized experiments. The package includes tools to estimate uniform confidence bands for estimation of the group average treatment effect sorted by generic ML algorithm (GATES). It also provides the tools to identify a subgroup of individuals who are likely to benefit from a treatment the most "exceptional responders" or those who are harmed by it. Detailed reference in Imai and Li (2023) <arXiv:2310.07973>.
+Description: Provides various statistical methods for evaluating heterogeneous treatment effects (HTE) in randomized experiments. The package includes tools to estimate uniform confidence bands for estimation of the group average treatment effect sorted by generic ML algorithm (GATES). It also provides the tools to identify a subgroup of individuals who are likely to benefit from a treatment the most "exceptional responders" or those who are harmed by it. Detailed reference in Imai and Li (2023) <doi:10.48550/arXiv.2310.07973>.
 License: MIT + file LICENSE
 Depends: 
-    R (>= 2.10),
+    R (>= 3.50),
     dplyr (>= 1.0.10)
 Imports: 
     cli,
@@ -33,6 +33,10 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    future,
+    grf,
+    magrittr,
+    tibble
 VignetteBuilder: 
     knitr
