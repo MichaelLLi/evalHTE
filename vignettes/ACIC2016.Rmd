@@ -69,7 +69,8 @@ compute_true_GATE <- function(truth, input_x, full_data, n_sample, nfolds, ngate
     model.matrix(~.-1, data = train_data$x),
     train_data$y,
     train_data$z,
-    num.trees = 10
+    num.trees = 10,
+    num.threads = 1
   )
 
   tau_test = predict(cf_train, newdata = model.matrix(~.-1, data = full_data$x))$predictions
@@ -171,7 +172,8 @@ compute_GATE_bounds <- function(truth, input_x, n_sample, nfolds, ngates, n_iter
       x_train,
       y_train,
       z_train,
-      num.trees = 20
+      num.trees = 20,
+      num.threads = 1
     )
 
     # compute tau
@@ -266,14 +268,19 @@ run_simluation_gate_sd <- function(truth, input_x, n_sample, nfolds, ngates, n_s
 ```{r}
 library(evalHTE)
 library(future)
-future::plan(future::multisession, workers = 2)
 library(furrr)
 library(magrittr)
 # load ACIC 2016 data
 library(grf)      # causal_forest
 library(dplyr)    # ntile, left_join, mutate, summarise
 library(tibble)
-
+future::plan(future::sequential)
+Sys.setenv(
+OMP_NUM_THREADS = 1,
+OPENBLAS_NUM_THREADS = 1,
+MKL_NUM_THREADS = 1,
+VECLIB_MAXIMUM_THREADS = 1
+)
 synth <- make_synth_acic_population(n_pop = 5000, seed = 28, p_cont = 10, p_bin = 10)
 
 input_x <- synth$x
