@@ -266,6 +266,8 @@ run_simluation_gate_sd <- function(truth, input_x, n_sample, nfolds, ngates, n_s
 ```{r}
 library(evalHTE)
 library(future)
+future::plan(future::multisession, workers = 2)
+library(furrr)
 library(magrittr)
 # load ACIC 2016 data
 library(grf)      # causal_forest
