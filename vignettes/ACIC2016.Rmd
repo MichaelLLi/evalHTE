@@ -266,21 +266,23 @@ run_simluation_gate_sd <- function(truth, input_x, n_sample, nfolds, ngates, n_s
 
 
 ```{r}
-library(evalHTE)
-library(future)
-library(furrr)
-library(magrittr)
-# load ACIC 2016 data
-library(grf)      # causal_forest
-library(dplyr)    # ntile, left_join, mutate, summarise
-library(tibble)
-future::plan(future::sequential)
+
 Sys.setenv(
 OMP_NUM_THREADS = 1,
 OPENBLAS_NUM_THREADS = 1,
 MKL_NUM_THREADS = 1,
 VECLIB_MAXIMUM_THREADS = 1
 )
+library(evalHTE)
+library(future)
+future::plan(future::sequential)
+library(furrr)
+library(magrittr)
+# load ACIC 2016 data
+library(grf)      # causal_forest
+options(grf.num.threads = 1)
+library(dplyr)    # ntile, left_join, mutate, summarise
+library(tibble)
 synth <- make_synth_acic_population(n_pop = 5000, seed = 28, p_cont = 10, p_bin = 10)
 
 input_x <- synth$x
@@ -289,10 +291,10 @@ truth <- synth$truth
 full_data <- simulate_data(truth, input_x, nrow(input_x), 2021)
 
 # parameters
-n_sample = 100
-n_sim = 10
-n_folds = 3
-n_gates = 3
+n_sample = 50
+n_sim = 5
+n_folds = 2
+n_gates = 2
 
 # compute true GATE
 results_gate = run_simluation_gate(truth, input_x, full_data, n_sample, n_folds, n_gates, n_sim)
