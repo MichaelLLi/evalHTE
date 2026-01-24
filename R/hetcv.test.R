@@ -5,7 +5,7 @@
 #' The details of the methods for this design are given in Imai and Li (2022).
 #'
 #' @importFrom stats cov pchisq
-#' @param T A vector of the unit-level binary treatment receipt variable for each sample.
+#' @param D A vector of the unit-level binary treatment receipt variable for each sample.
 #' @param tau A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.
 #' @param Y A vector of the outcome variable of interest for each sample.
 #' @param ind A vector of integers (between 1 and number of folds inclusive) indicating which testing set does each sample belong to.
@@ -14,11 +14,11 @@
 #' statistic for the test of heterogeneity under cross-validation.} \item{pval}{The p-value of the null
 #' hypothesis (that the treatment effects are homogeneous)}
 #' @examples
-#' T = c(1,0,1,0,1,0,1,0)
+#' D = c(1,0,1,0,1,0,1,0)
 #' tau = matrix(c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,-0.5,-0.3,-0.1,0.1,0.3,0.5,0.7,0.9),nrow = 8, ncol = 2)
 #' Y = c(4,5,0,2,4,1,-4,3)
 #' ind = c(rep(1,4),rep(2,4))
-#' hettestlist <- hetcv.test(T,tau,Y,ind,ngates=2)
+#' hettestlist <- hetcv.test(D,tau,Y,ind,ngates=2)
 #' hettestlist$stat
 #' hettestlist$pval
 #' @author Michael Lingzhi Li, Technology and Operations Management, Harvard Business School
@@ -26,14 +26,14 @@
 #' @references Imai and Li (2022). \dQuote{Statistical Inference for Heterogeneous Treatment Effects Discovered by Generic Machine Learning in Randomized Experiments},
 #' @keywords evaluation
 #' @export hetcv.test
-hetcv.test<- function(T, tau, Y, ind, ngates = 5) {
-  if (!(identical(as.numeric(T),as.numeric(as.logical(T))))) {
-    stop("T should be binary.")
+hetcv.test<- function(D, tau, Y, ind, ngates = 5) {
+  if (!(identical(as.numeric(D),as.numeric(as.logical(D))))) {
+    stop("D should be binary.")
   }
-  if ((length(T)!=dim(tau)[1]) | (dim(tau)[1]!=length(Y))) {
+  if ((length(D)!=dim(tau)[1]) | (dim(tau)[1]!=length(Y))) {
     stop("All the data should have the same length.")
   }
-  if (length(T)==0) {
+  if (length(D)==0) {
     stop("The data should have positive length.")
   }
   nfolds = max(ind)
@@ -48,7 +48,7 @@ hetcv.test<- function(T, tau, Y, ind, ngates = 5) {
   kf1cv = matrix(NA,nfolds,ngates)
   mcov = matrix(0, nrow = ngates, ncol = ngates)
   for (i in 1:nfolds) {
-    Tind = T[ind==i]
+    Tind = D[ind==i]
     tauind = tau[ind==i, i]
     Yind = Y[ind==i]
     tauind_full = tau[, i]
@@ -70,8 +70,8 @@ hetcv.test<- function(T, tau, Y, ind, ngates = 5) {
         tau_lcutoff = min(tauind[fd_label==j])
       }
       That_full = as.numeric((tauind_full <= tau_hcutoff) & (tauind_full >=tau_lcutoff))
-      if (length(Y[T==1 & That_full==1])>0 & length(Y[T==0 & That_full==1])>0) {
-        kf1cv[i, j] = mean(Y[T==1 & That_full==1])-mean(Y[T==0 & That_full==1])
+      if (length(Y[D==1 & That_full==1])>0 & length(Y[D==0 & That_full==1])>0) {
+        kf1cv[i, j] = mean(Y[D==1 & That_full==1])-mean(Y[D==0 & That_full==1])
       }
       plim = sum(That)/ length(That)
       papesm[i,j] = ngates * (1/n1*sum(Tind*That*Yind)+1/n0*sum(Yind*(1-Tind)*(1-That))-plim/n1*sum(Yind*Tind)-(1-plim)/n0*sum(Yind*(1-Tind)))

@@ -3,16 +3,16 @@
 #'
 #'
 #'
-#' @param T A vector of the unit-level binary treatment receipt variable for each sample.
+#' @param D A vector of the unit-level binary treatment receipt variable for each sample.
 #' @param tau A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.
 #' @param Y A vector of the outcome variable of interest for each sample.
 #' @return A list that contains the following items: \item{rate}{The estimated
 #' vector of URATE of length \code{Y}.} \item{sd}{The estimated vector of standard deviation of URATE.}
 #' @examples
-#' T <- c(1, 0, 1, 0, 1, 0, 1, 0)
+#' D <- c(1, 0, 1, 0, 1, 0, 1, 0)
 #' tau <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7)
 #' Y <- c(4, 5, 0, 2, 4, 1, -4, 3)
-#' ratelist <- URATE(T, tau, Y)
+#' ratelist <- URATE(D, tau, Y)
 #' ratelist$rate
 #' ratelist$sd
 #' @author Michael Lingzhi Li, Technology and Operations Management, Harvard Business School
@@ -21,22 +21,22 @@
 #' @keywords uniform band
 #' @import zoo
 #' @export URATE
-URATE <- function(T, tau, Y) {
+URATE <- function(D, tau, Y) {
   n <- length(Y)
-  n1 <- sum(T)
+  n1 <- sum(D)
   n0 <- n - n1
   tau <- tau + rnorm(length(tau), sd = 1e-5)
   tau_sort <- sort(tau, decreasing = TRUE, index.return = TRUE)
-  temp_sorted <- Y[tau_sort$ix] * (T[tau_sort$ix] * (1 / n1 + 1 / n0) - 1 / n0)
+  temp_sorted <- Y[tau_sort$ix] * (D[tau_sort$ix] * (1 / n1 + 1 / n0) - 1 / n0)
   # urates = cumsum(temp_sorted)
   urates <- cumsum(temp_sorted) * n / seq_along(temp_sorted)
-  # Sf1 = var(Y[T==1])
-  # Sf0 = var(Y[T==0])
+  # Sf1 = var(Y[D==1])
+  # Sf0 = var(Y[D==0])
   # vartotal = Sf1 / n1+Sf0 / n0
 
   # vargts = numeric(n)
-  Y1_ranked <- Y[tau_sort$ix][T[tau_sort$ix] == 1]
-  Y0_ranked <- Y[tau_sort$ix][T[tau_sort$ix] == 0]
+  Y1_ranked <- Y[tau_sort$ix][D[tau_sort$ix] == 1]
+  Y0_ranked <- Y[tau_sort$ix][D[tau_sort$ix] == 0]
   EY1 <- mean(Y1_ranked)
   EY0 <- mean(Y0_ranked)
   SY11b <- cumsum(Y1_ranked)
@@ -57,30 +57,30 @@ URATE <- function(T, tau, Y) {
   # fill in the values at correct places
   Sfp1 <- numeric(n)
   Sfp0 <- numeric(n)
-  Sfp1[T[tau_sort$ix] == 1] <- Sfp1b
-  Sfp0[T[tau_sort$ix] == 0] <- Sfp0b
-  Sfp1[T[tau_sort$ix] == 0] <- NA
-  Sfp0[T[tau_sort$ix] == 1] <- NA
+  Sfp1[D[tau_sort$ix] == 1] <- Sfp1b
+  Sfp0[D[tau_sort$ix] == 0] <- Sfp0b
+  Sfp1[D[tau_sort$ix] == 0] <- NA
+  Sfp0[D[tau_sort$ix] == 1] <- NA
   Sfp1 <- zoo::na.locf(Sfp1, na.rm = FALSE)
   Sfp1 <- zoo::na.locf(Sfp1, fromLast = TRUE)
   Sfp0 <- zoo::na.locf(Sfp0, na.rm = FALSE)
   Sfp0 <- zoo::na.locf(Sfp0, fromLast = TRUE)
   SY11 <- numeric(n)
   SY01 <- numeric(n)
-  SY11[T[tau_sort$ix] == 1] <- SY11b
-  SY11[T[tau_sort$ix] == 0] <- NA
-  SY01[T[tau_sort$ix] == 1] <- NA
-  SY01[T[tau_sort$ix] == 0] <- SY01b
+  SY11[D[tau_sort$ix] == 1] <- SY11b
+  SY11[D[tau_sort$ix] == 0] <- NA
+  SY01[D[tau_sort$ix] == 1] <- NA
+  SY01[D[tau_sort$ix] == 0] <- SY01b
   SY11 <- zoo::na.locf(SY11, na.rm = FALSE)
   SY11 <- zoo::na.locf(SY11, fromLast = TRUE)
   SY01 <- zoo::na.locf(SY01, na.rm = FALSE)
   SY01 <- zoo::na.locf(SY01, fromLast = TRUE)
   l11 <- numeric(n)
   l01 <- numeric(n)
-  l11[T[tau_sort$ix] == 1] <- l11b
-  l11[T[tau_sort$ix] == 0] <- NA
-  l01[T[tau_sort$ix] == 1] <- NA
-  l01[T[tau_sort$ix] == 0] <- l01b
+  l11[D[tau_sort$ix] == 1] <- l11b
+  l11[D[tau_sort$ix] == 0] <- NA
+  l01[D[tau_sort$ix] == 1] <- NA
+  l01[D[tau_sort$ix] == 0] <- l01b
   l11 <- zoo::na.locf(l11, na.rm = FALSE)
   l11 <- zoo::na.locf(l11, fromLast = TRUE)
   l01 <- zoo::na.locf(l01, na.rm = FALSE)
@@ -88,10 +88,10 @@ URATE <- function(T, tau, Y) {
   kf1 <- SY11 / l11 - SY01 / l01
   SY211 <- numeric(n)
   SY201 <- numeric(n)
-  SY211[T[tau_sort$ix] == 1] <- SY211b
-  SY211[T[tau_sort$ix] == 0] <- NA
-  SY201[T[tau_sort$ix] == 1] <- NA
-  SY201[T[tau_sort$ix] == 0] <- SY201b
+  SY211[D[tau_sort$ix] == 1] <- SY211b
+  SY211[D[tau_sort$ix] == 0] <- NA
+  SY201[D[tau_sort$ix] == 1] <- NA
+  SY201[D[tau_sort$ix] == 0] <- SY201b
   SY211 <- zoo::na.locf(SY211, na.rm = FALSE)
   SY211 <- zoo::na.locf(SY211, fromLast = TRUE)
   SY201 <- zoo::na.locf(SY201, na.rm = FALSE)
@@ -103,6 +103,6 @@ URATE <- function(T, tau, Y) {
   varrates <- Sfp1 / n1 + Sfp0 / n0 - (seq(n, 1, -1) - 1) / (seq(n, 1, -1)^2 * (n - 1)) * kf1^2
   varrates <- varrates * (n / seq_along(temp_sorted))^2
   # number of units treated with different urates
-  # n_treat <- cumsum(T[tau_sort$ix])[which.max(urates)]
+  # n_treat <- cumsum(D[tau_sort$ix])[which.max(urates)]
   return(list(rate = urates, sd = sqrt(pmax(varrates, 0))))
 }

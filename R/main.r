@@ -188,7 +188,7 @@ test_itr <- function(
   ## =================================
 
   if(cv == FALSE){
-    cat('Conduct hypothesis tests for GATEs unde sample splitting ...\n')
+    message('Conduct hypothesis tests for GATEs unde sample splitting ...\n')
 
     # create empty lists to for consistcv and hetcv
     consist <- list()
@@ -221,7 +221,7 @@ test_itr <- function(
   ## =================================
 
   if(cv == TRUE){
-    cat('Conduct hypothesis tests for GATEs unde cross-validation ...\n')
+    message('Conduct hypothesis tests for GATEs unde cross-validation ...\n')
 
     # create empty lists to for consistcv and hetcv
     consistcv <- list()

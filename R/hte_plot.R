@@ -35,6 +35,7 @@ return(out)
 #'
 #' @param x An object for which a plot is desired.
 #' @param ... Further arguments passed to methods.
+#' @return A ggplot2 object displaying uniform and pointwise confidence intervals for heterogeneous treatment effects.
 #' @export
 plot_CI <- function(x, ...) {
   UseMethod("plot_CI")
@@ -91,7 +92,7 @@ if(length(estimate_algs) != 0){
 
   # format output under cross validation -----------------------------------------
   if(cv == TRUE){
-    print("Not supported under cross-validation")
+    stop("Not supported under cross-validation")
   }
 
   # format output under sample splitting -----------------------------------------

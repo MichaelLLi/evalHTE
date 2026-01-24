@@ -3,6 +3,11 @@
 #' @param ... Other parameters.
 #' @import purrr
 #' @importFrom stats pnorm
+#' @return An object of class \code{summary.hte}, which is a list containing:
+#'   \describe{
+#'     \item{GATE}{A tibble with group average treatment effect estimates, including columns: group, algorithm, estimate, std.deviation, lower, upper, z.score, and p.value.}
+#'     \item{URATE}{A tibble with uplift rate estimates for exceptional responders, including columns: algorithm, estimate, std.deviation, conf.low.uniform, z.score, and p.value. Returns NULL when cross-validation is used.}
+#'   }
 #' @export
 summary.hte <- function(object, ...) {
 
@@ -191,6 +196,7 @@ if(length(estimate_user) != 0){
 #' @importFrom cli cat_rule
 #' @param x An object of \code{summary.hte} class. This is typically an output of \code{summary.hte()} function.
 #' @param ... Other parameters. Currently not supported.
+#' @return No return value, called for side effects (prints summary tables to console).
 #' @export
 print.summary.hte <- function(x, ...) {
   # GATE
@@ -214,6 +220,14 @@ print.summary.hte <- function(x, ...) {
 #' @param object An object of \code{test_hte} class (typically an output of \code{test_hte()} function).
 #' @param ... Other parameters.
 #' @importFrom stats pnorm
+#' @return An object of class \code{summary.test_hte}, which is a list containing:
+#'   \describe{
+#'     \item{Consistency}{A tibble with consistency test results, including columns: algorithm, statistic, and p.value (for sample splitting).}
+#'     \item{Heterogeneity}{A tibble with heterogeneity test results, including columns: algorithm, statistic, and p.value (for sample splitting).}
+#'     \item{Consistency_cv}{A tibble with consistency test results for cross-validation.}
+#'     \item{Heterogeneity_cv}{A tibble with heterogeneity test results for cross-validation.}
+#'   }
+#'   Note: The output contains either the first two or last two elements depending on whether cross-validation was used.
 #' @export
 summary.test_hte <- function(object, ...) {
   out            <- list()
@@ -286,6 +300,7 @@ summary.test_hte <- function(object, ...) {
 #' @importFrom cli cat_rule
 #' @param x An object of \code{summary.test_hte} class. This is typically an output of \code{summary.test_hte()} function.
 #' @param ... Other parameters.
+#' @return No return value, called for side effects (prints test results to console).
 #' @export
 print.summary.test_hte <- function(x, ...) {
 

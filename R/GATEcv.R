@@ -4,7 +4,7 @@
 #'
 #'
 #'
-#' @param T A vector of the unit-level binary treatment receipt variable for each sample.
+#' @param D A vector of the unit-level binary treatment receipt variable for each sample.
 #' @param tau A matrix where the \code{i}th column is the unit-level continuous score for treatment assignment generated in the \code{i}th fold. Conditional Average Treatment Effect is one possible measure.
 #' @param Y A vector of the outcome variable of interest for each sample.
 #' @param ind A vector of integers (between 1 and number of folds inclusive) indicating which testing set does each sample belong to.
@@ -13,11 +13,11 @@
 #' vector of GATEs under cross-validation of length \code{ngates} arranged in order of increasing \code{tau}.} \item{sd}{The estimated vector of standard deviation
 #' of GATEs under cross-validation.}
 #' @examples
-#' T = c(1,0,1,0,1,0,1,0)
+#' D = c(1,0,1,0,1,0,1,0)
 #' tau = matrix(c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,-0.5,-0.3,-0.1,0.1,0.3,0.5,0.7,0.9),nrow = 8, ncol = 2)
 #' Y = c(4,5,0,2,4,1,-4,3)
 #' ind = c(rep(1,4),rep(2,4))
-#' gatelist <- GATEcv(T, tau, Y, ind, ngates = 2)
+#' gatelist <- GATEcv(D, tau, Y, ind, ngates = 2)
 #' gatelist$gate
 #' gatelist$sd
 #' @author Michael Lingzhi Li, Technology and Operations Management, Harvard Business School
@@ -27,14 +27,14 @@
 #' @export GATEcv
 #'
 #'
-GATEcv <- function(T, tau, Y, ind, ngates = 5) {
-  if (!(identical(as.numeric(T),as.numeric(as.logical(T))))) {
-    stop("T should be binary.")
+GATEcv <- function(D, tau, Y, ind, ngates = 5) {
+  if (!(identical(as.numeric(D),as.numeric(as.logical(D))))) {
+    stop("D should be binary.")
   }
-  if ((length(T)!=dim(tau)[1]) | (dim(tau)[1]!=length(Y))) {
+  if ((length(D)!=dim(tau)[1]) | (dim(tau)[1]!=length(Y))) {
     stop("All the data should have the same length.")
   }
-  if (length(T)==0) {
+  if (length(D)==0) {
     stop("The data should have positive length.")
   }
   nfolds = max(ind)
@@ -46,7 +46,7 @@ GATEcv <- function(T, tau, Y, ind, ngates = 5) {
   vargts = numeric(ngates)
   kf1cv = matrix(NA,nfolds,ngates)
   for (i in 1:nfolds) {
-    Tind = T[ind==i]
+    Tind = D[ind==i]
     tauind = tau[ind==i, i]
     Yind = Y[ind==i]
     tauind_full = tau[, i]
@@ -68,8 +68,8 @@ GATEcv <- function(T, tau, Y, ind, ngates = 5) {
         tau_lcutoff = min(tauind[fd_label==j])
       }
       That_full = as.numeric((tauind_full <= tau_hcutoff) & (tauind_full >=tau_lcutoff))
-      if (length(Y[T==1 & That_full==1])>0 & length(Y[T==0 & That_full==1])>0) {
-        kf1cv[i, j] = mean(Y[T==1 & That_full==1])-mean(Y[T==0 & That_full==1])
+      if (length(Y[D==1 & That_full==1])>0 & length(Y[D==0 & That_full==1])>0) {
+        kf1cv[i, j] = mean(Y[D==1 & That_full==1])-mean(Y[D==0 & That_full==1])
       }
       plim = sum(That)/ length(That)
       gatesm[i,j] = (1/n1*sum(Tind*That*Yind)+1/n0*sum(Yind*(1-Tind)*(1-That))-1/n0*sum(Yind * (1-Tind)))
