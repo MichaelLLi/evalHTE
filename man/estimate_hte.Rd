@@ -26,9 +26,9 @@ estimate_hte(
 \arguments{
 \item{treatment}{Treatment variable}
 
-\item{form}{a formula object that takes the form \code{y ~ T + x1 + x2 + ...}.}
+\item{form}{a formula object that takes the form \code{y ~ D + x1 + x2 + ...}.}
 
-\item{data}{A data frame that contains the outcome \code{y} and the treatment \code{T}.}
+\item{data}{A data frame that contains the outcome \code{y} and the treatment \code{D}.}
 
 \item{algorithms}{List of machine learning algorithms to be used.}
 
