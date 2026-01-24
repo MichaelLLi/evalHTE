@@ -11,6 +11,9 @@
 
 \item{...}{Other parameters.}
 }
+\value{
+No return value, called for side effects (prints test results to console).
+}
 \description{
 Print
 }

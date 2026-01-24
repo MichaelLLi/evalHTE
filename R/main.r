@@ -1,7 +1,7 @@
 #' Evaluate Heterogeneous Treatment Effects
 #' @param treatment Treatment variable
-#' @param form a formula object that takes the form \code{y ~ T + x1 + x2 + ...}.
-#' @param data A data frame that contains the outcome \code{y} and the treatment \code{T}.
+#' @param form a formula object that takes the form \code{y ~ D + x1 + x2 + ...}.
+#' @param data A data frame that contains the outcome \code{y} and the treatment \code{D}.
 #' @param algorithms List of machine learning algorithms to be used.
 #' @param n_folds Number of cross-validation folds. Default is 5.
 #' @param split_ratio Split ratio between train and test set under sample splitting. Default is 0.
@@ -198,13 +198,13 @@ test_itr <- function(
     for (i in algorithms) {
 
       consist[[i]] <- consist.test(
-        T   = Tcv,
+        D   = Tcv,
         tau = fit_ml[[i]]$tau,
         Y   = Ycv,
         ngates = ngates)
 
       het[[i]] <- het.test(
-        T   = Tcv,
+        D   = Tcv,
         tau = fit_ml[[i]]$tau,
         Y   = Ycv,
         ngates = ngates)
@@ -231,14 +231,14 @@ test_itr <- function(
     for (i in algorithms) {
 
       consistcv[[i]] <- consistcv.test(
-        T   = Tcv,
+        D   = Tcv,
         tau = gettaucv(fit)[[i]],
         Y   = Ycv,
         ind = indcv,
         ngates = ngates)
 
       hetcv[[i]] <- hetcv.test(
-        T   = Tcv,
+        D   = Tcv,
         tau = gettaucv(fit)[[i]],
         Y   = Ycv,
         ind = indcv,
@@ -257,5 +257,5 @@ test_itr <- function(
 }
 
 
-utils::globalVariables(c("T", "aupec", "sd", "pval", "Pval", "aupec.y", "fraction", "AUPECmin", "AUPECmax", ".", "fit", "out", "pape", "alg", "papep", "papd", "type", "gate", "group", "qnorm", "vec", "Y", "algorithm", "statistic", "p.value", "GATEcv", "RATEmin", "RATEpoint", "Type", "best_ind", "best_rate", "consist.test", "consistcv.test", "est", "gettaucv", "het.test", "hetcv.test", "rate", "value", "map", "model.matrix", "quantile","rnorm","estimate", "std.deviation", "lower", "upper", "z.score", "conf.low.uniform"))
+utils::globalVariables(c("D", "aupec", "sd", "pval", "Pval", "aupec.y", "fraction", "AUPECmin", "AUPECmax", ".", "fit", "out", "pape", "alg", "papep", "papd", "type", "gate", "group", "qnorm", "vec", "Y", "algorithm", "statistic", "p.value", "GATEcv", "RATEmin", "RATEpoint", "Type", "best_ind", "best_rate", "consist.test", "consistcv.test", "est", "gettaucv", "het.test", "hetcv.test", "rate", "value", "map", "model.matrix", "quantile","rnorm","estimate", "std.deviation", "lower", "upper", "z.score", "conf.low.uniform"))
 

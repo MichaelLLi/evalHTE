@@ -4,10 +4,10 @@
 \alias{GATE}
 \title{Estimation of the Grouped Average Treatment Effects (GATEs) in Randomized Experiments}
 \usage{
-GATE(T, tau, Y, ngates = 5)
+GATE(D, tau, Y, ngates = 5)
 }
 \arguments{
-\item{T}{A vector of the unit-level binary treatment receipt variable for each sample.}
+\item{D}{A vector of the unit-level binary treatment receipt variable for each sample.}
 
 \item{tau}{A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.}
 
@@ -24,10 +24,10 @@ of GATEs.}
 This function estimates the Grouped Average Treatment Effects (GATEs) where the groups are determined by a continuous score. The details of the methods for this design are given in Imai and Li (2022).
 }
 \examples{
-T = c(1,0,1,0,1,0,1,0)
+D = c(1,0,1,0,1,0,1,0)
 tau = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7)
 Y = c(4,5,0,2,4,1,-4,3)
-gatelist <- GATE(T,tau,Y,ngates=5)
+gatelist <- GATE(D,tau,Y,ngates=5)
 gatelist$gate
 gatelist$sd
 }

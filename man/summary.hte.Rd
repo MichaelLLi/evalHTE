@@ -11,6 +11,13 @@
 
 \item{...}{Other parameters.}
 }
+\value{
+An object of class \code{summary.hte}, which is a list containing:
+\describe{
+\item{GATE}{A tibble with group average treatment effect estimates, including columns: group, algorithm, estimate, std.deviation, lower, upper, z.score, and p.value.}
+\item{URATE}{A tibble with uplift rate estimates for exceptional responders, including columns: algorithm, estimate, std.deviation, conf.low.uniform, z.score, and p.value. Returns NULL when cross-validation is used.}
+}
+}
 \description{
 Summarize Heterogeneity and Consistency Tests
 }

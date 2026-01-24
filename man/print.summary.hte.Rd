@@ -11,6 +11,9 @@
 
 \item{...}{Other parameters. Currently not supported.}
 }
+\value{
+No return value, called for side effects (prints summary tables to console).
+}
 \description{
 Print
 }

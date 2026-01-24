@@ -11,6 +11,16 @@
 
 \item{...}{Other parameters.}
 }
+\value{
+An object of class \code{summary.test_hte}, which is a list containing:
+\describe{
+\item{Consistency}{A tibble with consistency test results, including columns: algorithm, statistic, and p.value (for sample splitting).}
+\item{Heterogeneity}{A tibble with heterogeneity test results, including columns: algorithm, statistic, and p.value (for sample splitting).}
+\item{Consistency_cv}{A tibble with consistency test results for cross-validation.}
+\item{Heterogeneity_cv}{A tibble with heterogeneity test results for cross-validation.}
+}
+Note: The output contains either the first two or last two elements depending on whether cross-validation was used.
+}
 \description{
 Summarize Heterogeneity and Consistency Tests
 }

@@ -11,6 +11,9 @@ plot_CI(x, ...)
 
 \item{...}{Further arguments passed to methods.}
 }
+\value{
+A ggplot2 object displaying uniform and pointwise confidence intervals for heterogeneous treatment effects.
+}
 \description{
 A generic function to plot uniform and pointwise confidence intervals for HTE objects.
 }

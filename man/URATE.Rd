@@ -4,10 +4,10 @@
 \alias{URATE}
 \title{This function use individualized treatment rule  to identify exceptional responders. The details of the methods for this design are given in Imai and Li (2023).}
 \usage{
-URATE(T, tau, Y)
+URATE(D, tau, Y)
 }
 \arguments{
-\item{T}{A vector of the unit-level binary treatment receipt variable for each sample.}
+\item{D}{A vector of the unit-level binary treatment receipt variable for each sample.}
 
 \item{tau}{A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.}
 
@@ -21,10 +21,10 @@ vector of URATE of length \code{Y}.} \item{sd}{The estimated vector of standard 
 This function use individualized treatment rule  to identify exceptional responders. The details of the methods for this design are given in Imai and Li (2023).
 }
 \examples{
-T <- c(1, 0, 1, 0, 1, 0, 1, 0)
+D <- c(1, 0, 1, 0, 1, 0, 1, 0)
 tau <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7)
 Y <- c(4, 5, 0, 2, 4, 1, -4, 3)
-ratelist <- URATE(T, tau, Y)
+ratelist <- URATE(D, tau, Y)
 ratelist$rate
 ratelist$sd
 }
