@@ -188,7 +188,7 @@ test_itr <- function(
   ## =================================
 
   if(cv == FALSE){
-    message('Conduct hypothesis tests for GATEs unde sample splitting ...\n')
+    message('Conduct hypothesis tests for GATEs under sample splitting ...\n')
 
     # create empty lists to for consistcv and hetcv
     consist <- list()
@@ -221,29 +221,55 @@ test_itr <- function(
   ## =================================
 
   if(cv == TRUE){
-    message('Conduct hypothesis tests for GATEs unde cross-validation ...\n')
+    message('Conduct hypothesis tests for GATEs under cross-validation ...\n')
 
-    # create empty lists to for consistcv and hetcv
+    get_tau_cv_mat <- function(fit, alg, indcv) {
+      obj <- fit$estimates$fit_ml[[alg]]
+      K <- max(indcv)
+      
+      # Case 1: obj is a list of fold objects, each has $tau_cv (your case)
+      if (is.list(obj) && length(obj) >= K && !is.null(obj[[1]]$tau_cv)) {
+        tau_mat <- sapply(1:K, function(k) obj[[k]]$tau_cv)
+        return(as.matrix(tau_mat))
+      }
+      
+      # Case 2: obj itself has $tau_cv (sometimes happens in other implementations)
+      if (is.list(obj) && !is.null(obj$tau_cv)) {
+        tau_mat <- obj$tau_cv
+        if (is.list(tau_mat)) tau_mat <- do.call(cbind, tau_mat)
+        return(as.matrix(tau_mat))
+      }
+      
+      stop(paste0("Cannot locate tau_cv for algorithm = ", alg,
+                  ". Inspect str(fit$estimates$fit_ml[[alg]])."))
+    }
+    
     consistcv <- list()
     hetcv <- list()
-
-    # run consistency and heterogeneity tests for each model
-    for (i in algorithms) {
-
-      consistcv[[i]] <- consistcv.test(
-        D   = Tcv,
-        tau = gettaucv(fit)[[i]],
-        Y   = Ycv,
+    
+    for (alg in algorithms) {
+      
+      tau_mat <- get_tau_cv_mat(fit, alg, indcv)
+      
+      # basic sanity checks (fail fast if something is misaligned)
+      stopifnot(nrow(tau_mat) == length(Ycv))
+      stopifnot(ncol(tau_mat) == max(indcv))
+      
+      consistcv[[alg]] <- consistcv.test(
+        D = Tcv,
+        tau = tau_mat,
+        Y = Ycv,
         ind = indcv,
-        ngates = ngates)
-
-      hetcv[[i]] <- hetcv.test(
-        D   = Tcv,
-        tau = gettaucv(fit)[[i]],
-        Y   = Ycv,
+        ngates = ngates
+      )
+      
+      hetcv[[alg]] <- hetcv.test(
+        D = Tcv,
+        tau = tau_mat,
+        Y = Ycv,
         ind = indcv,
-        ngates = ngates)
-
+        ngates = ngates
+      )
     }
 
   # return a list of consistcv and hetcv

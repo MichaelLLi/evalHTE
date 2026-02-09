@@ -1,6 +1,6 @@
 Package: evalHTE
 Title: Evaluating Heterogeneous Treatment Effects
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Michael Lingzhi", "Li", email = "mili@hbs.edu", role = c("aut", "cre")),
     person("Kosuke", "Imai", email = "imai@harvard.edu", role = "aut"),
