@@ -2,7 +2,6 @@
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/evalHTE)](https://CRAN.R-project.org/package=evalHTE)
-[![R-CMD-check](https://github.com/MichaelLLi/evalHTE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MichaelLLi/evalHTE/actions/workflows/R-CMD-check.yaml)
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/evalHTE)](https://CRAN.R-project.org/package=evalHTE)
 <!-- badges: end -->
 
