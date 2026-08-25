@@ -4,10 +4,25 @@
 \alias{hetcv.test}
 \title{The Heterogeneity Test for Grouped Average Treatment Effects (GATEs) under Cross Validation in Randomized Experiments}
 \usage{
-hetcv.test(D, tau, Y, ind, ngates = 5)
+hetcv.test(
+  T,
+  tau,
+  Y,
+  ind,
+  ngates = 5,
+  center = TRUE,
+  residualize = FALSE,
+  X = NULL,
+  p = mean(T),
+  nuisance_learner = "SuperLearner",
+  SL.library = c("SL.mean", "SL.glm", "SL.gam", "SL.glmnet", "SL.nnet", "SL.earth",
+    "SL.rpartPrune"),
+  SL_folds = 5,
+  learner_args = list()
+)
 }
 \arguments{
-\item{D}{A vector of the unit-level binary treatment receipt variable for each sample.}
+\item{T}{A vector of the unit-level binary treatment receipt variable for each sample.}
 
 \item{tau}{A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.}
 
@@ -16,6 +31,30 @@ hetcv.test(D, tau, Y, ind, ngates = 5)
 \item{ind}{A vector of integers (between 1 and number of folds inclusive) indicating which testing set does each sample belong to.}
 
 \item{ngates}{The number of groups to separate the data into. The groups are determined by \code{tau}. Default is 5.}
+
+\item{center}{Whether to center the outcome before constructing the test
+statistic. Default is \code{TRUE}.}
+
+\item{residualize}{Whether to residualize \code{Y} before testing. Default is
+\code{FALSE}, which uses the supplied outcome without nuisance adjustment.}
+
+\item{X}{Optional covariate matrix or data frame used for automatic nuisance
+cross-fitting. Nuisance models use the folds supplied in \code{ind}.}
+
+\item{p}{Treatment probability used in residualization. The default is the
+empirical treatment proportion. Supply the known assignment probability
+when available.}
+
+\item{nuisance_learner}{Either \code{"SuperLearner"} or a custom prediction
+function; see \code{\link[=residualize_outcome]{residualize_outcome()}}.}
+
+\item{SL.library}{SuperLearner library used for automatic residualization.
+The default includes mean, GLM, GAM, glmnet, neural-network, earth, and
+pruned-tree learners.}
+
+\item{SL_folds}{Number of inner SuperLearner folds. Default is 5.}
+
+\item{learner_args}{Additional arguments for the nuisance learner.}
 }
 \value{
 A list that contains the following items: \item{stat}{The estimated
@@ -26,19 +65,22 @@ hypothesis (that the treatment effects are homogeneous)}
 This function calculates statistics related to the test of heterogeneous treatment effects across groups under cross-validation.
 }
 \details{
-The details of the methods for this design are given in Imai and Li (2022).
+The details of the methods for this design are given in Imai and Li (2025).
+The supplied outcome is centered by default. Optionally, arm-specific
+outcome regressions can be cross-fitted using the same outer folds before
+conducting the test.
 }
 \examples{
-D = c(1,0,1,0,1,0,1,0)
-tau = matrix(c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,-0.5,-0.3,-0.1,0.1,0.3,0.5,0.7,0.9),nrow = 8, ncol = 2)
-Y = c(4,5,0,2,4,1,-4,3)
-ind = c(rep(1,4),rep(2,4))
-hettestlist <- hetcv.test(D,tau,Y,ind,ngates=2)
+T <- rep(c(1, 0), 40)
+ind <- rep(1:2, each = 40)
+tau <- cbind(seq_len(80) / 80, seq_len(80) / 80)
+Y <- tau[, 1] * T + rnorm(80)
+hettestlist <- hetcv.test(T, tau, Y, ind, ngates = 2)
 hettestlist$stat
 hettestlist$pval
 }
 \references{
-Imai and Li (2022). \dQuote{Statistical Inference for Heterogeneous Treatment Effects Discovered by Generic Machine Learning in Randomized Experiments},
+Imai and Li (2025). \dQuote{Statistical Inference for Heterogeneous Treatment Effects Discovered by Generic Machine Learning in Randomized Experiments},
 }
 \author{
 Michael Lingzhi Li, Technology and Operations Management, Harvard Business School
