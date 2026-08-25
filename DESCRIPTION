@@ -36,7 +36,15 @@ Suggests:
     rmarkdown,
     future,
     grf,
+    gam,
+    glmnet,
+    nnet,
+    earth,
+    rpart,
     magrittr,
-    tibble
+    tibble,
+    SuperLearner,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 VignetteBuilder: 
     knitr

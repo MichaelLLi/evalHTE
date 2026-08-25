@@ -204,7 +204,7 @@ test_itr <- function(
         ngates = ngates)
 
       het[[i]] <- het.test(
-        D   = Tcv,
+        T   = Tcv,
         tau = fit_ml[[i]]$tau,
         Y   = Ycv,
         ngates = ngates)
@@ -264,7 +264,7 @@ test_itr <- function(
       )
       
       hetcv[[alg]] <- hetcv.test(
-        D = Tcv,
+        T = Tcv,
         tau = tau_mat,
         Y = Ycv,
         ind = indcv,
