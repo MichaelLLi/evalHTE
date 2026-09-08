@@ -4,30 +4,34 @@
 \alias{GATE}
 \title{Estimation of the Grouped Average Treatment Effects (GATEs) in Randomized Experiments}
 \usage{
-GATE(D, tau, Y, ngates = 5)
+GATE(D, tau, Y, ngates = 5, centered = FALSE)
 }
 \arguments{
-\item{D}{A vector of the unit-level binary treatment receipt variable for each sample.}
+\item{D}{Binary treatment indicator (0 or 1).}
 
-\item{tau}{A vector of the unit-level continuous score. Conditional Average Treatment Effect is one possible measure.}
+\item{tau}{Continuous score vector.}
 
-\item{Y}{A vector of the outcome variable of interest for each sample.}
+\item{Y}{Outcome vector.}
 
-\item{ngates}{The number of groups to separate the data into. The groups are determined by \code{tau}. Default is 5.}
+\item{ngates}{Number of groups (at least 2).}
+
+\item{centered}{Whether to center outcomes before estimation.}
 }
 \value{
-A list that contains the following items: \item{gate}{The estimated
-vector of GATEs of length \code{ngates} arranged in order of increasing \code{tau}.} \item{sd}{The estimated vector of standard deviation
-of GATEs.}
+A list with group estimates \code{gate} and standard errors \code{sd},
+ordered by increasing score.
 }
 \description{
-This function estimates the Grouped Average Treatment Effects (GATEs) where the groups are determined by a continuous score. The details of the methods for this design are given in Imai and Li (2022).
+Estimates grouped average treatment effects from a continuous score.
+}
+\details{
+Uses \code{\link[evalITR]{GATE}} for inference.
 }
 \examples{
 D = c(1,0,1,0,1,0,1,0)
 tau = c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7)
 Y = c(4,5,0,2,4,1,-4,3)
-gatelist <- GATE(D,tau,Y,ngates=5)
+gatelist <- GATE(D,tau,Y,ngates=2)
 gatelist$gate
 gatelist$sd
 }

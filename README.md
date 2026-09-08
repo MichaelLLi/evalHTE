@@ -7,7 +7,7 @@
 
 ## Overview
 
-**evalHTE** provides statistical methods for evaluating heterogeneous treatment effects (HTE) in randomized experiments. The package implements the methodology developed in [Imai and Li (2025)](https://doi.org/10.1080/07350015.2024.2421995) for:
+**evalHTE** provides statistical methods for evaluating heterogeneous treatment effects (HTE) in randomized experiments. The package implements the methodology developed in [Imai and Li (2025)](https://doi.org/10.1080/07350015.2024.2358909) for:
 
 - Estimating **Grouped Average Treatment Effects (GATEs)** with uniform confidence bands
 - Identifying **exceptional responders** — individuals who benefit the most (or are harmed) by a treatment
@@ -175,7 +175,7 @@ If you use this package in your research, please cite:
   number={1},
   pages={256--268},
   year={2025},
-  doi={10.1080/07350015.2024.2421995}
+  doi={10.1080/07350015.2024.2358909}
 }
 ```
 
@@ -204,4 +204,4 @@ MIT License
 
 ## References
 
-Imai, K. and Li, M. L. (2025). "Statistical Inference for Heterogeneous Treatment Effects Discovered by Generic Machine Learning in Randomized Experiments." *Journal of Business & Economic Statistics*, Vol. 43, No. 1, pp. 256-268. https://doi.org/10.1080/07350015.2024.2421995
+Imai, K. and Li, M. L. (2025). "Statistical Inference for Heterogeneous Treatment Effects Discovered by Generic Machine Learning in Randomized Experiments." *Journal of Business & Economic Statistics*, Vol. 43, No. 1, pp. 256-268. https://doi.org/10.1080/07350015.2024.2358909
